@@ -1,17 +1,14 @@
 %{
-#include <stdio.h>
-#include <string.h>
-
-extern int yyparse();
-
+#include "compiler.tab.h"
 %}
 
 CHIFFRE[0-9]
 LETTRE[a-zA-Z]
 %x COMMENTAIRE
-%x INF
-%x SUP
-%X DP
+%x INFERIOR
+%x SUPERIOR
+%x DP
+%x END_BOTH
 
 %%
 
@@ -29,16 +26,83 @@ LETTRE[a-zA-Z]
 	return yytext[0];
 }
 
-"div"|"mod"|"var"|"integer"|"real"|"char"|"boolean"|"if"|"then"|"else"|"while"|"do"|"readln"|"writeln"|"function"|"procedure"|"program" {
-	return yytext;
+"div" {
+	return DIV;
 }
 
+"mod" {
+	return MOD;
+}
+
+"var" {
+	return VAR;
+}
+
+"integer" {
+	return INTEGER;
+}
+
+"real" {
+	return REAL;
+}
+
+"char" {
+	return CHAR;
+}
+
+"boolean" {
+	return BOOLEAN;
+}
+
+"if" {
+	return IF;
+}
+
+"then" {
+	return THEN;
+}
+
+"else" {
+	return ELSE;
+}
+
+"while" {
+	return WHILE;
+}
+
+"do" {
+	return DO;
+}
+
+"readln" {
+	return READLN;
+}
+
+"writeln" {
+	return WRITELN;
+}
+
+"function" {
+	return FUNCTION;
+}
+
+"procedure" {
+	return PROCEDURE;
+}
+
+"program" {
+	return PROGRAM;
+}
+
+"begin" {
+	return BEGIN_BLOCK;
+}
 
 "{" {
 	BEGIN(COMMENTAIRE);
 }
 
-<COMMENTAIRE>.|"\n" {
+<COMMENTAIRE>^["}"]|"\n" {
 }
 
 <COMMENTAIRE><<EOF>> {
@@ -50,30 +114,49 @@ LETTRE[a-zA-Z]
 }
 
 "<" {
-	BEGIN(INF);
+	BEGIN(INFERIOR);
 }
 
-<INF>"="|">" {
-	return strcat("<", yytext[0]);
+"end" {
+	BEGIN(END_BOTH);
+}
+
+<END_BOTH>"." {
+	return BIG_END;
 	BEGIN(INITIAL);
 }
 
-<INF>^[=>] {
-	return "<";
+<END_BOTH>^["."] {
+	return END_BLOCK;
+	BEGIN(INITIAL);
+}
+
+<INFERIOR>"=" {
+	return INF_EQUAL;
+	BEGIN(INITIAL);
+}
+
+<INFERIOR>">" {
+	return DIFF;
+	BEGIN(INITIAL);
+}
+
+<INFERIOR>^["="">"] {
+	return INF;
 	BEGIN(INITIAL);
 }
 
 ">" {
-	BEGIN(SUP);
+	BEGIN(SUPERIOR);
 }
 
-<SUP>"=" {
-	return strcat(">", yytext[0]);
+<SUPERIOR>"=" {
+	return SUP_EQUAL;
 	BEGIN(INITIAL);
 }
 
-<SUP>^[=] {
-	return ">";
+<SUPERIOR>^["="] {
+	return SUP;
 	BEGIN(INITIAL);
 }
 
@@ -82,12 +165,12 @@ LETTRE[a-zA-Z]
 }
 
 <DP>"=" {
-	return strcat(":", yytext[0]);
+	return AFF;
 	BEGIN(INITIAL);
 }
 
-<DP>^[=] {
-	return ":";
+<DP>^["="] {
+	return COLON;
 	BEGIN(INITIAL);
 }
 
@@ -96,5 +179,9 @@ LETTRE[a-zA-Z]
 }
 
 LETTRE+(CHIFFRE*LETTRE*)* {
-	return yytext;
+	/* sauvegarder l'id */
+	yylval.string = malloc((yyleng+1)*sizeof(char));
+	strncpy(yylval.string, yytext, yyleng + 1);
+	return VAR_ID;
 }
+
