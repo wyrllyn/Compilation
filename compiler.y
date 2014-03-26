@@ -9,7 +9,7 @@ void yyerror(char const* s);
 extern FILE* yyin;
 
 %}
-
+%error-verbose
 %union {
 	int integer;
 }
@@ -55,8 +55,39 @@ extern FILE* yyin;
 
 %%
 program:
-	"end." {
+	all BIG_END {
 };
+
+all:  FLOAT
+| INT
+| AFF
+| DIFF
+| INF_EQUAL
+| SUP_EQUAL
+| INF
+| SUP
+| COLON
+| DIV
+| MOD
+| VAR
+| INTEGER
+| REAL
+| CHAR
+| BOOLEAN
+| IF
+| THEN
+| ELSE
+| WHILE
+| DO
+| READLN
+| WRITELN
+| PROCEDURE
+| FUNCTION
+| PROGRAM
+| BEGIN_BLOCK
+| END_BLOCK
+| VAR_ID
+| all
 
 %%
 

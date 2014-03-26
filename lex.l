@@ -12,6 +12,13 @@ LETTRE[a-zA-Z]
 
 %%
 
+"program" {
+	return PROGRAM;
+}
+
+[ \t\n] {
+}
+
 {CHIFFRE}+ {
 	yylval.integer = atoi(yytext);
 	return INT;
@@ -90,10 +97,6 @@ LETTRE[a-zA-Z]
 	return PROCEDURE;
 }
 
-"program" {
-	return PROGRAM;
-}
-
 "begin" {
 	return BEGIN_BLOCK;
 }
@@ -122,26 +125,31 @@ LETTRE[a-zA-Z]
 }
 
 <END_BOTH>"." {
+	printf("end. \n");
 	return BIG_END;
 	BEGIN(INITIAL);
 }
 
 <END_BOTH>^["."] {
+	printf("end normal \n");
 	return END_BLOCK;
 	BEGIN(INITIAL);
 }
 
 <INFERIOR>"=" {
+	printf("<= \n");
 	return INF_EQUAL;
 	BEGIN(INITIAL);
 }
 
 <INFERIOR>">" {
+	printf("<> \n");
 	return DIFF;
 	BEGIN(INITIAL);
 }
 
 <INFERIOR>^["="">"] {
+	printf("< \n");
 	return INF;
 	BEGIN(INITIAL);
 }
@@ -151,11 +159,13 @@ LETTRE[a-zA-Z]
 }
 
 <SUPERIOR>"=" {
+	printf(">= \n");
 	return SUP_EQUAL;
 	BEGIN(INITIAL);
 }
 
 <SUPERIOR>^["="] {
+	printf("> \n");
 	return SUP;
 	BEGIN(INITIAL);
 }
@@ -165,11 +175,13 @@ LETTRE[a-zA-Z]
 }
 
 <DP>"=" {
+	printf(":= \n");
 	return AFF;
 	BEGIN(INITIAL);
 }
 
 <DP>^["="] {
+	printf(": \n");
 	return COLON;
 	BEGIN(INITIAL);
 }
@@ -183,5 +195,10 @@ LETTRE+(CHIFFRE*LETTRE*)* {
 	yylval.string = malloc((yyleng+1)*sizeof(char));
 	strncpy(yylval.string, yytext, yyleng + 1);
 	return VAR_ID;
+}
+
+
+. {
+	printf("erreur: \"%s\" est un caractère inconnu.\n", yytext);
 }
 
