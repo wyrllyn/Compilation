@@ -133,9 +133,9 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 }
 
 ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)* {
-	/* sauvegarder l'id */
 	yylval.string = malloc((yyleng+1)*sizeof(char));
 	strncpy(yylval.string, yytext, yyleng + 1);
+	table_add_id(yylval.string);
 	return VAR_ID;
 }
 

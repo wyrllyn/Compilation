@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include "table.h"
 
 extern int yyparse();
 
@@ -60,6 +61,10 @@ program:
 	all BIG_END {
 };
 
+type:
+	FLOAT | INT | REAL | CHAR | BOOLEAN {
+};
+
 all:  FLOAT
 | INT
 | AFF
@@ -94,6 +99,7 @@ all:  FLOAT
 %%
 
 int main(int argc, char* argv[]) {
+	init_table(50);
 	FILE* f = NULL;
 	if (argc > 1) {
 		f = fopen(argv[1], "r");
