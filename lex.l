@@ -17,7 +17,7 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 
 
 "program" {
-//	return PROGRAM;
+	return PROGRAM;
 }
 
 [ \t] {
@@ -34,7 +34,7 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 
 [CHIFFRE]+("."[CHIFFRE]*)? {
 	yylval.real = atof(yytext);
-//	return FLOAT;
+	return FLOAT;
 }
 
 "-"|"+"|"/"|"*"|"("|")"|";" {
@@ -42,71 +42,71 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 }
 
 "div" {
-//	return DIV;
+	return DIV;
 }
 
 "mod" {
-//	return MOD;
+	return MOD;
 }
 
 "var" {
-//	return VAR;
+	return VAR;
 }
 
 "integer" {
-//	return INTEGER;
+	return INTEGER;
 }
 
 "real" {
-//	return REAL;
+	return REAL;
 }
 
 "char" {
-//	return CHAR;
+	return CHAR;
 }
 
 "boolean" {
-//	return BOOLEAN;
+	return BOOLEAN;
 }
 
 "if" {
-//	return IF;
+	return IF;
 }
 
 "then" {
-//	return THEN;
+	return THEN;
 }
 
 "else" {
-//	return ELSE;
+	return ELSE;
 }
 
 "while" {
-//	return WHILE;
+	return WHILE;
 }
 
 "do" {
-//	return DO;
+	return DO;
 }
 
 "readln" {
-	//return READLN;
+	return READLN;
 }
 
 "writeln" {
-	//return WRITELN;
+	return WRITELN;
 }
 
 "function" {
-	//return FUNCTION;
+	return FUNCTION;
 }
 
 "procedure" {
-	//return PROCEDURE;
+	return PROCEDURE;
 }
 
 "begin" {
-	//return BEGIN_BLOCK;
+	return BEGIN_BLOCK;
 }
 
 "{" {
@@ -136,36 +136,36 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 	/* sauvegarder l'id */
 	yylval.string = malloc((yyleng+1)*sizeof(char));
 	strncpy(yylval.string, yytext, yyleng + 1);
-//	return VAR_ID;
+	return VAR_ID;
 }
 
 <END_BOTH>"." {
 	printf("end. \n");
-	//return BIG_END;
+	return BIG_END;
 	BEGIN(INITIAL);
 }
 
 <END_BOTH>^["."] {
 	printf("end normal \n");
-	//return END_BLOCK;
+	return END_BLOCK;
 	BEGIN(INITIAL);
 }
 
 <INFERIOR>"=" {
 	printf("<= \n");
-	//return INF_EQUAL;
+	return INF_EQUAL;
 	BEGIN(INITIAL);
 }
 
 <INFERIOR>">" {
 	printf("<> \n");
-	//return DIFF;
+	return DIFF;
 	BEGIN(INITIAL);
 }
 
 <INFERIOR>^["="">"] {
 	printf("< \n");
-//	return INF;
+	return INF;
 	BEGIN(INITIAL);
 }
 
@@ -175,13 +175,13 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 
 <SUPERIOR>"=" {
 	printf(">= \n");
-//	return SUP_EQUAL;
+	return SUP_EQUAL;
 	BEGIN(INITIAL);
 }
 
 <SUPERIOR>^["="] {
 	printf("> \n");
-//	return SUP;
+	return SUP;
 	BEGIN(INITIAL);
 }
 
@@ -191,7 +191,7 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 
 <DP>"=" {
 	printf(":= \n");
-//	return AFF;
+	return AFF;
 	BEGIN(INITIAL);
 }
 
@@ -202,7 +202,7 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 }
 
 "=" {
-//	return yytext[0];
+	return yytext[0];
 }
 
 
