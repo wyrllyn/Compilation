@@ -4,6 +4,8 @@
 
 extern int yyparse();
 
+int line = 0;
+
 int yylex();
 void yyerror(char const* s);
 extern FILE* yyin;
@@ -111,5 +113,5 @@ int main(int argc, char* argv[]) {
 }
 
 void yyerror(char const* s) {
-	fprintf(stderr, "Erreur: %s.\n", s);
+	fprintf(stderr, "Ligne %d, Erreur: %s.\n", line, s);
 }

@@ -1,9 +1,12 @@
 %{
 #include "compiler.tab.h"
+
+extern int line;
 %}
 
 CHIFFRE[0-9]
-LETTRE[a-zA-Z]
+LETTRE [a-zA-Z]
+id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 %x COMMENTAIRE
 %x INFERIOR
 %x SUPERIOR
@@ -12,11 +15,16 @@ LETTRE[a-zA-Z]
 
 %%
 
+
 "program" {
-	return PROGRAM;
+//	return PROGRAM;
 }
 
-[ \t\n] {
+[ \t] {
+}
+
+\n {
+	line++;
 }
 
 {CHIFFRE}+ {
@@ -26,7 +34,7 @@ LETTRE[a-zA-Z]
 
 [CHIFFRE]+("."[CHIFFRE]*)? {
 	yylval.real = atof(yytext);
-	return FLOAT;
+//	return FLOAT;
 }
 
 "-"|"+"|"/"|"*"|"("|")"|";" {
@@ -34,71 +42,71 @@ LETTRE[a-zA-Z]
 }
 
 "div" {
-	return DIV;
+//	return DIV;
 }
 
 "mod" {
-	return MOD;
+//	return MOD;
 }
 
 "var" {
-	return VAR;
+//	return VAR;
 }
 
 "integer" {
-	return INTEGER;
+//	return INTEGER;
 }
 
 "real" {
-	return REAL;
+//	return REAL;
 }
 
 "char" {
-	return CHAR;
+//	return CHAR;
 }
 
 "boolean" {
-	return BOOLEAN;
+//	return BOOLEAN;
 }
 
 "if" {
-	return IF;
+//	return IF;
 }
 
 "then" {
-	return THEN;
+//	return THEN;
 }
 
 "else" {
-	return ELSE;
+//	return ELSE;
 }
 
 "while" {
-	return WHILE;
+//	return WHILE;
 }
 
 "do" {
-	return DO;
+//	return DO;
 }
 
 "readln" {
-	return READLN;
+	//return READLN;
 }
 
 "writeln" {
-	return WRITELN;
+	//return WRITELN;
 }
 
 "function" {
-	return FUNCTION;
+	//return FUNCTION;
 }
 
 "procedure" {
-	return PROCEDURE;
+	//return PROCEDURE;
 }
 
 "begin" {
-	return BEGIN_BLOCK;
+	//return BEGIN_BLOCK;
 }
 
 "{" {
@@ -124,33 +132,40 @@ LETTRE[a-zA-Z]
 	BEGIN(END_BOTH);
 }
 
+({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)* {
+	/* sauvegarder l'id */
+	yylval.string = malloc((yyleng+1)*sizeof(char));
+	strncpy(yylval.string, yytext, yyleng + 1);
+//	return VAR_ID;
+}
+
 <END_BOTH>"." {
 	printf("end. \n");
-	return BIG_END;
+	//return BIG_END;
 	BEGIN(INITIAL);
 }
 
 <END_BOTH>^["."] {
 	printf("end normal \n");
-	return END_BLOCK;
+	//return END_BLOCK;
 	BEGIN(INITIAL);
 }
 
 <INFERIOR>"=" {
 	printf("<= \n");
-	return INF_EQUAL;
+	//return INF_EQUAL;
 	BEGIN(INITIAL);
 }
 
 <INFERIOR>">" {
 	printf("<> \n");
-	return DIFF;
+	//return DIFF;
 	BEGIN(INITIAL);
 }
 
 <INFERIOR>^["="">"] {
 	printf("< \n");
-	return INF;
+//	return INF;
 	BEGIN(INITIAL);
 }
 
@@ -160,13 +175,13 @@ LETTRE[a-zA-Z]
 
 <SUPERIOR>"=" {
 	printf(">= \n");
-	return SUP_EQUAL;
+//	return SUP_EQUAL;
 	BEGIN(INITIAL);
 }
 
 <SUPERIOR>^["="] {
 	printf("> \n");
-	return SUP;
+//	return SUP;
 	BEGIN(INITIAL);
 }
 
@@ -176,7 +191,7 @@ LETTRE[a-zA-Z]
 
 <DP>"=" {
 	printf(":= \n");
-	return AFF;
+//	return AFF;
 	BEGIN(INITIAL);
 }
 
@@ -187,18 +202,13 @@ LETTRE[a-zA-Z]
 }
 
 "=" {
-	return yytext[0];
+//	return yytext[0];
 }
 
-LETTRE+(CHIFFRE*LETTRE*)* {
-	/* sauvegarder l'id */
-	yylval.string = malloc((yyleng+1)*sizeof(char));
-	strncpy(yylval.string, yytext, yyleng + 1);
-	return VAR_ID;
-}
+
 
 
 . {
-	printf("erreur: \"%s\" est un caractère inconnu.\n", yytext);
+	printf("erreur: \"%s\" est un caractère inconnu. (ligne %d)\n", yytext, line);
 }
 
