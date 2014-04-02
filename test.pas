@@ -2,14 +2,15 @@ program test;
 
 {function f}
 function f(x : integer) : integer;
-var iterator : integer;
+var i : integer;
 begin
-	iterator := 0;
+	i := 0;
 	f := 0;
-	while iterator < x do
+	while i < x do
 	begin
-		if iterator mod 2 = 0 then
+		if i mod 2 = 0 then
 			f := f + iterator;
+			i := i + 1;
 	end;
 end;
 
