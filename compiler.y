@@ -14,9 +14,13 @@ extern FILE* yyin;
 %}
 %error-verbose
 
-%left INF SUP DIFF INF_EQUAL SUP_EQUAL NOT OR AND
+%left INF SUP DIFF INF_EQUAL SUP_EQUAL NOT OR AND '='
 %left '+' '-'
 %left '*' '/' DIV
+%right MOD
+
+%nonassoc IFX
+%nonassoc ELSE
 
 %union {
 	int integer;
@@ -57,6 +61,9 @@ extern FILE* yyin;
 %token AND
 %token OR
 %token NOT
+%token ID_TO_READ
+%token ID_TO_WRITE
+%token STRING_TO_WRITE
 
 %%
 
@@ -83,7 +90,7 @@ procedure core {
 
 ///////////////////////
 
-main: BEGIN_BLOCK {
+main: main_var BEGIN_BLOCK instruct_multiple BIG_END{
 };
 
 function: function_header function_var function_core {
@@ -120,15 +127,17 @@ params_not_empty: ids COLON type {
 };
 
 ids: VAR_ID','ids {
-	printf("id,\n");
 }
 | VAR_ID {
-	printf("id\n");
 };
 
 /////////////////////////////////////////
 
-function_var: VAR declaration {};
+function_var: VAR declaration {}
+| {};
+
+main_var: VAR declaration {} |
+ {};
 
 declaration: ids COLON type followed_by ';' {};
 
@@ -145,26 +154,51 @@ procedure_core: block {};
 
 //////////////////////////////////
 
-block: BEGIN_BLOCK instruct END_BLOCK {};
-
-instruct: affect instruct {}
-| {}
-| while_block instruct{};
-
-while_block: WHILE expr DO {}; 
+block: BEGIN_BLOCK instruct_multiple END_BLOCK';' {} | 
+BEGIN_BLOCK END_BLOCK ';' {};
 
 
-expr: NBR {}
-| VAR_ID {}
+while_block: WHILE expr DO block {}; 
+
+instruct_multiple: affect instruct_multiple {}
+| instruct_single {}
+| if_then instruct_multiple {}
+| read_n_write instruct_multiple {}
+| while_block instruct_multiple{};
+
+read_n_write: READLN ID_TO_READ ';' {
+ //verification of ID_TO_READ presence into symbol table
+}
+| WRITELN ID_TO_WRITE ';' {}
+| WRITELN STRING_TO_WRITE ';' {};
+
+
+instruct_single: affect {}
+| if_then {}
+| read_n_write {}
+| while_block {};
+
+both_instructs: block {}
+| instruct_single {} ;
+
+
+if_then: IF expr THEN both_instructs %prec IFX {}
+| IF expr THEN both_instructs ELSE both_instructs {};
+
+
+expr: NBR {printf("number \n");}
+| VAR_ID {printf("id \n");}
 | expr '+' expr {
-	printf("addition joie");}
+	printf("addition \n");}
 | expr '-' expr {}
 | expr '*' expr {}
+| expr MOD expr {printf("mod \n");}
 | expr '/' expr {} //division
 | expr DIV expr {} //quotient
 | expr DIFF expr {}
 | expr SUP expr {}
-| expr INF expr {}
+| expr INF expr {printf("\n inf \n");}
+| expr '=' expr {printf("\n equal \n");}
 | expr SUP_EQUAL expr {}
 | expr INF_EQUAL expr {}
 | expr AND expr {}

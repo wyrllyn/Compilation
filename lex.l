@@ -8,10 +8,8 @@ CHIFFRE[0-9]
 LETTRE [a-zA-Z]
 id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 %x COMMENTAIRE
-%x INFERIOR
-%x SUPERIOR
-%x DP
-%x END_BOTH
+%x READ
+%x WRITE
 
 %%
 
@@ -33,7 +31,7 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 }
 
 
-"-"|"+"|"/"|"*"|"("|")"|";"|"," {
+"-"|"+"|"/"|"*"|"("|")"|";"|","|"%" {
 	return yytext[0];
 }
 
@@ -93,13 +91,47 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 	return DO;
 }
 
-"readln" {
+"readln(" {
+	BEGIN(READ);
 	return READLN;
 }
 
-"writeln" {
+<READ>({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*")" {
+	yylval.string = (char*)malloc((yyleng)*sizeof(char));
+	strncpy(yylval.string, yytext, yyleng - 1);
+	printf("\n to read %s \n", yylval.string);
+	// save it ?
+	BEGIN(INITIAL);
+	return ID_TO_READ;
+	
+}
+
+"writeln(" {
+	BEGIN(WRITE);
 	return WRITELN;
 }
+
+
+<WRITE>({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*")" {
+/* an id */
+	yylval.string = (char*)malloc((yyleng)*sizeof(char));
+	strncpy(yylval.string, yytext, yyleng - 1);
+	printf("\n to write %s \n", yylval.string);
+	// save it ? 
+	BEGIN(INITIAL);
+	return ID_TO_WRITE;
+}
+
+
+<WRITE>"." {
+// a string
+	yylval.string = (char*)malloc((yyleng)*sizeof(char));
+	strncpy(yylval.string, yytext, yyleng - 1);
+	printf("\n to write %s \n", yylval.string);
+	BEGIN(INITIAL);
+	return STRING_TO_WRITE;
+}
+
 
 "function" {
 	return FUNCTION;
