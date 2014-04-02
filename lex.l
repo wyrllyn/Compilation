@@ -37,7 +37,7 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 	return FLOAT;
 }
 
-"-"|"+"|"/"|"*"|"("|")"|";" {
+"-"|"+"|"/"|"*"|"("|")"|";"|"," {
 	return yytext[0];
 }
 
@@ -113,7 +113,11 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 	BEGIN(COMMENTAIRE);
 }
 
-<COMMENTAIRE>^["}"]|"\n" {
+<COMMENTAIRE>^["}"] {
+}
+
+<COMMENTAIRE>"\n" {
+	line++;
 }
 
 <COMMENTAIRE><<EOF>> {
@@ -186,19 +190,11 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 }
 
 ":" {
-	BEGIN(DP);
-}
-
-<DP>"=" {
-	printf(":= \n");
-	return AFF;
-	BEGIN(INITIAL);
-}
-
-<DP>^["="] {
-	printf(": \n");
 	return COLON;
-	BEGIN(INITIAL);
+}
+
+":=" {
+	return AFF;
 }
 
 "=" {

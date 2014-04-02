@@ -1,7 +1,7 @@
 program test;
 
 {function f}
-function f(x : integer) : integer;
+function f(x,y : integer, z: integer) : integer;
 var i : integer;
 begin
 	i := 0;
@@ -9,7 +9,7 @@ begin
 	while i < x do
 	begin
 		if i mod 2 = 0 then
-			f := f + iterator;
+			f := f + i;
 			i := i + 1;
 	end;
 end;

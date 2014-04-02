@@ -21,8 +21,8 @@ struct t_cell {
 typedef struct t_cell Cell;
 
 Cell* table;
-int table_size = 50;
-int current_size = 0;
+//int table_size = 50;
+//int current_size = 0;
 
 void init_table(int size);
 void table_add_id(char* id);

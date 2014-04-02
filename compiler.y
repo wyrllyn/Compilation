@@ -5,7 +5,7 @@
 
 extern int yyparse();
 
-int line = 0;
+int line = 1;
 
 int yylex();
 void yyerror(char const* s);
@@ -57,14 +57,60 @@ extern FILE* yyin;
 %token VAR_ID
 
 %%
-program:
-	all BIG_END {
+program: pg core BIG_END {
 };
 
-type:
-	FLOAT | INT | REAL | CHAR | BOOLEAN {
+pg: PROGRAM VAR_ID ';' {
+	
 };
 
+core: function core {
+
+}
+| main {
+};
+
+main: BEGIN_BLOCK {
+};
+
+function: function_header function_var function_core {
+};
+
+
+function_header: FUNCTION VAR_ID '(' params ')' COLON type ';' {
+	printf("header\n");
+};
+
+type: INTEGER {}
+| REAL {}
+| CHAR {}
+| BOOLEAN {
+};
+
+function_var: {};
+
+function_core: {};
+
+params: params_not_empty {;
+}
+| { };
+
+ids: VAR_ID','ids {
+	printf("id,\n");
+}
+| VAR_ID {
+	printf("id\n");
+};
+
+
+params_not_empty: ids COLON type {
+
+}
+| ids COLON type ',' params_not_empty {
+};
+
+
+/*
 all:  FLOAT
 | INT
 | AFF
@@ -95,7 +141,7 @@ all:  FLOAT
 | END_BLOCK
 | VAR_ID
 | all
-
+*/
 %%
 
 int main(int argc, char* argv[]) {
@@ -110,7 +156,8 @@ int main(int argc, char* argv[]) {
 		yyin = f;
 	}
 	yyparse();
-	// My code goes here	
+	// My code goes here
+	table_print();
 
 	// My code ends here
 	if (f != NULL) {
