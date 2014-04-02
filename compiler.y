@@ -13,20 +13,20 @@ extern FILE* yyin;
 
 %}
 %error-verbose
-%union {
-	int integer;
-}
+
+%left INF SUP DIFF INF_EQUAL SUP_EQUAL NOT OR AND
+%left '+' '-'
+%left '*' '/' DIV
 
 %union {
-	float real;
+	int integer;
 }
 
 %union {
 	char* string;
 }
 
-%token FLOAT
-%token INT
+%token NBR
 %token AFF
 %token DIFF
 %token INF_EQUAL
@@ -38,7 +38,6 @@ extern FILE* yyin;
 %token MOD
 %token VAR
 %token INTEGER
-%token REAL
 %token CHAR
 %token BOOLEAN
 %token IF
@@ -55,20 +54,34 @@ extern FILE* yyin;
 %token END_BLOCK
 %token BIG_END
 %token VAR_ID
+%token AND
+%token OR
+%token NOT
 
 %%
+
 program: pg core BIG_END {
 };
+
+/////////////////////////////////////
 
 pg: PROGRAM VAR_ID ';' {
 	
 };
 
+///////////////////////////
+
 core: function core {
+
+}
+|
+procedure core {
 
 }
 | main {
 };
+
+///////////////////////
 
 main: BEGIN_BLOCK {
 };
@@ -76,24 +89,35 @@ main: BEGIN_BLOCK {
 function: function_header function_var function_core {
 };
 
+procedure: procedure_header function_var procedure_core {
+
+};
+
+//////////////////////////////////////////////////////
 
 function_header: FUNCTION VAR_ID '(' params ')' COLON type ';' {
 	printf("header\n");
 };
 
+procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
+
+}
+
 type: INTEGER {}
-| REAL {}
 | CHAR {}
 | BOOLEAN {
 };
 
-function_var: {};
+///////////////////////////////////////
 
-function_core: {};
+params: params_not_empty {}
+| {};
 
-params: params_not_empty {;
+
+params_not_empty: ids COLON type {
 }
-| { };
+| ids COLON type ',' params_not_empty {
+};
 
 ids: VAR_ID','ids {
 	printf("id,\n");
@@ -102,46 +126,53 @@ ids: VAR_ID','ids {
 	printf("id\n");
 };
 
+/////////////////////////////////////////
 
-params_not_empty: ids COLON type {
+function_var: VAR declaration {};
 
-}
-| ids COLON type ',' params_not_empty {
-};
+declaration: ids COLON type followed_by ';' {};
 
 
-/*
-all:  FLOAT
-| INT
-| AFF
-| DIFF
-| INF_EQUAL
-| SUP_EQUAL
-| INF
-| SUP
-| COLON
-| DIV
-| MOD
-| VAR
-| INTEGER
-| REAL
-| CHAR
-| BOOLEAN
-| IF
-| THEN
-| ELSE
-| WHILE
-| DO
-| READLN
-| WRITELN
-| PROCEDURE
-| FUNCTION
-| PROGRAM
-| BEGIN_BLOCK
-| END_BLOCK
-| VAR_ID
-| all
-*/
+followed_by: ids COLON type followed_by ';' {}
+| {};
+
+
+///////////////////////////////////////////
+
+function_core: block {};
+
+procedure_core: block {};
+
+//////////////////////////////////
+
+block: BEGIN_BLOCK instruct END_BLOCK {};
+
+instruct: affect instruct {}
+| {}
+| while_block instruct{};
+
+while_block: WHILE expr DO {}; 
+
+
+expr: NBR {}
+| VAR_ID {}
+| expr '+' expr {
+	printf("addition joie");}
+| expr '-' expr {}
+| expr '*' expr {}
+| expr '/' expr {} //division
+| expr DIV expr {} //quotient
+| expr DIFF expr {}
+| expr SUP expr {}
+| expr INF expr {}
+| expr SUP_EQUAL expr {}
+| expr INF_EQUAL expr {}
+| expr AND expr {}
+| expr OR expr {}
+| NOT expr {};
+
+affect: VAR_ID AFF expr ';' {};
+
 %%
 
 int main(int argc, char* argv[]) {

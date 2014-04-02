@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 enum t_type {
 	T_FLOAT,
@@ -26,6 +27,7 @@ Cell* table;
 
 void init_table(int size);
 void table_add_id(char* id);
+int table_contains(char* id);
 void table_add_type_to_id(char* id, Type type);
 void table_print();
 

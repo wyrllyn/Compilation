@@ -29,16 +29,24 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 
 {CHIFFRE}+ {
 	yylval.integer = atoi(yytext);
-	return INT;
+	return NBR;
 }
 
-[CHIFFRE]+("."[CHIFFRE]*)? {
-	yylval.real = atof(yytext);
-	return FLOAT;
-}
 
 "-"|"+"|"/"|"*"|"("|")"|";"|"," {
 	return yytext[0];
+}
+
+"and" {
+	return AND;
+}
+
+"or" {
+	return OR;
+}
+
+"not" {
+	return NOT;
 }
 
 "div" {
@@ -55,10 +63,6 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 
 "integer" {
 	return INTEGER;
-}
-
-"real" {
-	return REAL;
 }
 
 "char" {
@@ -128,65 +132,43 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 	BEGIN(INITIAL);
 }
 
-"<" {
-	BEGIN(INFERIOR);
-}
-
 "end" {
-	BEGIN(END_BOTH);
+	printf("end normal \n");
+	return END_BLOCK;
+}
+"end." {
+	printf("end. \n");
+	return BIG_END;
 }
 
 ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)* {
-	yylval.string = malloc((yyleng+1)*sizeof(char));
+	yylval.string = (char*)malloc((yyleng+1)*sizeof(char));
 	strncpy(yylval.string, yytext, yyleng + 1);
 	table_add_id(yylval.string);
 	return VAR_ID;
 }
 
-<END_BOTH>"." {
-	printf("end. \n");
-	return BIG_END;
-	BEGIN(INITIAL);
-}
-
-<END_BOTH>^["."] {
-	printf("end normal \n");
-	return END_BLOCK;
-	BEGIN(INITIAL);
-}
-
-<INFERIOR>"=" {
-	printf("<= \n");
+"<=" {
 	return INF_EQUAL;
-	BEGIN(INITIAL);
 }
 
-<INFERIOR>">" {
-	printf("<> \n");
+"<>" {
 	return DIFF;
-	BEGIN(INITIAL);
 }
 
-<INFERIOR>^["="">"] {
-	printf("< \n");
+"<" {
 	return INF;
-	BEGIN(INITIAL);
+}
+
+
+">=" {
+	printf(">= \n");
+	return SUP_EQUAL;
 }
 
 ">" {
-	BEGIN(SUPERIOR);
-}
-
-<SUPERIOR>"=" {
-	printf(">= \n");
-	return SUP_EQUAL;
-	BEGIN(INITIAL);
-}
-
-<SUPERIOR>^["="] {
 	printf("> \n");
 	return SUP;
-	BEGIN(INITIAL);
 }
 
 ":" {
