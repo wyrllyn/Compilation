@@ -215,9 +215,6 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 	return yytext[0];
 }
 
-
-
-
 . {
 	printf("erreur: \"%s\" est un caractère inconnu. (ligne %d)\n", yytext, line);
 }

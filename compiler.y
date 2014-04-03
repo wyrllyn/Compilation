@@ -67,7 +67,8 @@ extern FILE* yyin;
 
 %%
 
-program: pg core BIG_END {
+program: pg core main {
+	printf("\n finished \n");
 };
 
 /////////////////////////////////////
@@ -85,12 +86,12 @@ core: function core {
 procedure core {
 
 }
-| main {
+| {
 };
 
 ///////////////////////
 
-main: main_var BEGIN_BLOCK instruct_multiple BIG_END{
+main: main_var BEGIN_BLOCK instruct_multiple BIG_END {
 };
 
 function: function_header function_var function_core {
