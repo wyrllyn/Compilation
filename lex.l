@@ -6,7 +6,7 @@ extern int line;
 
 CHIFFRE[0-9]
 LETTRE [a-zA-Z]
-id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
+id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 %x COMMENTAIRE
 %x READ
 %x WRITE
@@ -123,7 +123,16 @@ id ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*
 }
 
 
-<WRITE>"." {
+<WRITE>({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*"("({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*"))" {
+// a function
+	yylval.string = (char*)malloc((yyleng)*sizeof(char));
+	strncpy(yylval.string, yytext, yyleng - 1);
+	printf("\n to write %s \n", yylval.string);
+	BEGIN(INITIAL);
+	return FUNCTION_TO_WRITE;
+}
+
+<WRITE>\'.*\'")" {
 // a string
 	yylval.string = (char*)malloc((yyleng)*sizeof(char));
 	strncpy(yylval.string, yytext, yyleng - 1);

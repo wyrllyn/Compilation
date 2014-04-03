@@ -64,6 +64,7 @@ extern FILE* yyin;
 %token ID_TO_READ
 %token ID_TO_WRITE
 %token STRING_TO_WRITE
+%token FUNCTION_TO_WRITE
 
 %%
 
@@ -171,6 +172,8 @@ read_n_write: READLN ID_TO_READ ';' {
  //verification of ID_TO_READ presence into symbol table
 }
 | WRITELN ID_TO_WRITE ';' {}
+| WRITELN FUNCTION_TO_WRITE ';' {
+	printf("function \n");}
 | WRITELN STRING_TO_WRITE ';' {};
 
 
@@ -187,19 +190,18 @@ if_then: IF expr THEN both_instructs %prec IFX {}
 | IF expr THEN both_instructs ELSE both_instructs {};
 
 
-expr: NBR {printf("number \n");}
-| VAR_ID {printf("id \n");}
-| expr '+' expr {
-	printf("addition \n");}
+expr: NBR {}
+| VAR_ID {}
+| expr '+' expr {}
 | expr '-' expr {}
 | expr '*' expr {}
-| expr MOD expr {printf("mod \n");}
+| expr MOD expr {}
 | expr '/' expr {} //division
 | expr DIV expr {} //quotient
 | expr DIFF expr {}
 | expr SUP expr {}
-| expr INF expr {printf("\n inf \n");}
-| expr '=' expr {printf("\n equal \n");}
+| expr INF expr {}
+| expr '=' expr {}
 | expr SUP_EQUAL expr {}
 | expr INF_EQUAL expr {}
 | expr AND expr {}
