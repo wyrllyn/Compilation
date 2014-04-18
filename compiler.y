@@ -126,7 +126,6 @@ char* indentation(int ind) {
 %type<type_string> declaration;
 %type<type_string> params;
 %type<type_string> params_not_empty;
-%type<type_string> function_header;
 %type<type_string> procedure_header;
 %type<type_string> endFound;
 %type<type_string> if_then;
@@ -140,7 +139,6 @@ char* indentation(int ind) {
 %type<type_string> main;
 %type<type_string> function;
 %type<type_string> procedure;
-%type<type_string> function_core;
 %type<type_string> procedure_core;
 %type<type_string> program;
 %type<type_string> pg;
@@ -150,6 +148,8 @@ char* indentation(int ind) {
 %%
 
 program: pg core main {
+		printf("\n First indentation %d ", indent);
+
 	$$ = copy_3($1, $2, $3);
 
 	
@@ -190,11 +190,10 @@ main: main_var beginFound instruct_multiple BIG_END {
 	$$ = copy_3($$, "\n}", "");
 };
 
-function: function_header function_var function_core {
-	$$ = copy_3($1, $2, "");
-	$$ = copy_3($$, $3, indentation(indent));
+/*function: function_header function_core {
+	$$ = copy_3($1, $2, indentation(indent));
 
-};
+};*/
 
 procedure: procedure_header function_var procedure_core {
 	$$ = copy_3($1, $2, indentation(indent));
@@ -203,17 +202,24 @@ procedure: procedure_header function_var procedure_core {
 
 ///////////////////////////// DONE   /////////////////////////
 
-function_header: FUNCTION VAR_ID '(' params ')' COLON type ';' {
+function: FUNCTION VAR_ID '(' params ')' COLON type ';'
+
+function_var beginFound instruct_multiple endFound';'
+ {
 	vrbls++;
 	table_add_type_to_id($2, T_FUNCTION);
 
 	$$ = copy_3(getType($7), $2, "(");
 	$$ = copy_3($$, $4, ")");
-	indent++;
+		printf("\n 1 indentation %d ", indent);
+	indent = 1;
 	$$ = copy_3($$, "{", indentation(indent));
 	$$ = copy_3($$, getType($7), $2);
 	$$ = copy_3($$, ";", indentation(indent));
-
+	$$ = copy_3($$, $9, $11);
+	$$ = copy_3($$, indentation(indent), "return");
+	$$ = copy_3($$, $2, ";");
+	$$ = copy_3($$, "\n", $12);
 };
 
 procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
@@ -255,54 +261,51 @@ ids: VAR_ID ',' ids {
 	// TYPE TODO symbol
 	//#############################
 	char* temp = getType($3);
-
-
-
 	$$ = copy_3(temp, $1, "");
 
-	printf("\nshow me dollar%s", $$);
 	vrbls++;
 };
 
 ///////////////////////////////////////// DONE //////
 
 function_var: VAR declaration {
+	indent = 1;
 	$$ = $2;
 }
 | {
+	indent = 1;
 	$$ = "";
 };
 
 main_var: VAR declaration {
-	indent++;
+	indent = 1;
 	$$ = copy_3(indentation(indent), $2, "");
 	
 } |
  {	
-	indent++;
+	indent = 1;
 	$$ = "";
 };
 
 declaration: ids ';' followed_by {
+	indent = 1;
 	$$ = copy_3($1,";", "");
 	$$ = copy_3($$, indentation(indent), $3);
 };
 
 
 followed_by: VAR ids ';' followed_by  {
+	indent = 1;
 	$$ = copy_3($2, ";", "");
 	$$ = copy_3($$, indentation(indent), $4);
 }
 | {
+	indent = 1;
 	$$ = "";
 };
 
 
 ////////////////// DONE /////////////////////////
-
-function_core: block {
-	$$ = $1;
-};
 
 procedure_core: block {
 	$$ = $1;
@@ -319,8 +322,7 @@ beginFound endFound ';' {
 
 
 while_block: WHILE expr DO block {
-	$$ = copy_3("while", "(", $2);
-	$$ = copy_3($$, ")", "{");
+	$$ = copy_3("while", $2, "{");
 	indent++;
 	$$ = copy_3($$, "", $4);
 	
@@ -381,9 +383,7 @@ both_instructs: block {
 
 
 if_then: IF expr THEN both_instructs %prec IFX {
-	$$ = copy_3("if", "(", $2);
-	$$ = copy_3($$, ")", "");
-	$$ = copy_3($$, $4, "");
+	$$ = copy_3("if", $2, $4);
 }
 | IF expr THEN both_instructs ELSE both_instructs {
 	$$ = copy_3("if", "(", $2);
@@ -423,33 +423,42 @@ expr: NBR {
 }
 | expr DIFF expr {
 	$$ = copy_3($1, "!=", $3);
+	$$ = copy_3("(", $$, ")");
 }
 | '(' expr ')' {
 	$$ = copy_3("(", $2, ")");
 }
 | expr SUP expr {
 	$$ = copy_3($1, $2, $3);
+	$$ = copy_3("(", $$, ")");
 }
 | expr INF expr {
 	$$ = copy_3($1, $2, $3);
+	$$ = copy_3("(", $$, ")");
 }
 | expr '=' expr {
 	$$ = copy_3($1, "==", $3);
+	$$ = copy_3("(", $$, ")");
 }
 | expr SUP_EQUAL expr {
 	$$ = copy_3($1, $2, $3);
+	$$ = copy_3("(", $$, ")");
 }
 | expr INF_EQUAL expr {
 	$$ = copy_3($1, $2, $3);
+	$$ = copy_3("(", $$, ")");
 }
 | expr AND expr {
 	$$ = copy_3($1, "&&", $3);
+	$$ = copy_3("(", $$, ")");
 }
 | expr OR expr {
 	$$ = copy_3($1, "||", $3);
+	$$ = copy_3("(", $$, ")");
 }
 | NOT expr {
 	$$ = copy_3($1, $2, "");
+	$$ = copy_3("(", $$, ")");
 };
 
 affect: VAR_ID AFF expr ';' { 

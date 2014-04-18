@@ -1,8 +1,10 @@
 program test;
 
+
 {function f}
 function f(x,y : integer, z: integer) : integer;
 var i : integer;
+var j : integer;
 begin
 	i := 0;
 	f := 0;
