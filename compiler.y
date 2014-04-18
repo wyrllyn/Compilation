@@ -13,6 +13,16 @@ int yylex();
 void yyerror(char const* s);
 extern FILE* yyin;
 
+char * copy_3(char* first, char* second, char* third) {
+	char* temp = malloc(sizeof(first) + sizeof(second) + sizeof(third));
+	strcat(temp,first);
+	strcat(temp, second);
+	strcat(temp, third);
+	return temp;
+}
+
+
+
 %}
 %error-verbose
 
@@ -30,51 +40,50 @@ extern FILE* yyin;
 }
 
 %union {
-	char* string;
+	char* type_string;
 }
 
-/*%union {
-	enum t_type tt;
-}*/
 
-%token<int> NBR
-%token AFF
-%token DIFF
-%token INF_EQUAL
-%token SUP_EQUAL
-%token INF
-%token SUP
-%token COLON
-%token DIV
-%token MOD
-%token VAR
-%token INTEGER
-%token CHAR
-%token BOOLEAN
-%token IF
-%token THEN
-%token ELSE
-%token WHILE
-%token DO
-%token READLN
-%token WRITELN
-%token PROCEDURE
-%token FUNCTION
-%token PROGRAM
-%token BEGIN_BLOCK
-%token END_BLOCK
-%token BIG_END
-%token<string> VAR_ID
-%token AND
-%token OR
-%token NOT
-%token ID_TO_READ
-%token ID_TO_WRITE
-%token STRING_TO_WRITE
-%token FUNCTION_TO_WRITE
+%token<type_string> NBR
+%token<type_string> AFF
+%token<type_string> DIFF
+%token<type_string> INF_EQUAL
+%token<type_string> SUP_EQUAL
+%token<type_string> INF
+%token<type_string> SUP
+%token<type_string> COLON
+%token<type_string> DIV
+%token<type_string> MOD
+%token<type_string> VAR
+%token<type_string> INTEGER
+%token<type_string> CHAR
+%token<type_string> BOOLEAN
+%token<type_string> IF
+%token<type_string> THEN
+%token<type_string> ELSE
+%token<type_string> WHILE
+%token<type_string> DO
+%token<type_string> READLN
+%token<type_string> WRITELN
+%token<type_string> PROCEDURE
+%token<type_string> FUNCTION
+%token<type_string> PROGRAM
+%token<type_string> BEGIN_BLOCK
+%token<type_string> END_BLOCK
+%token<type_string> BIG_END
+%token<type_string> VAR_ID
+%token<type_string> AND
+%token<type_string> OR
+%token<type_string> NOT
+%token<type_string> ID_TO_READ
+%token<type_string> ID_TO_WRITE
+%token<type_string> STRING_TO_WRITE
+%token<type_string> FUNCTION_TO_WRITE
+%token<type_string> OPERATOR
 
-%type<int> expr;
-//%type<tt> type;
+%type<type_string> type;
+%type<type_string> expr;
+
 
 %%
 
@@ -128,9 +137,9 @@ procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
 
 }
 
-type: INTEGER { /*$$ = T_INT;*/ }
-| CHAR {}
-| BOOLEAN {
+type: INTEGER { $$ = "INTEGER"; }
+| CHAR { $$ = "CHAR";}
+| BOOLEAN { $$ = "BOOLEAN";
 };
 
 ///////////////////////////////////////
@@ -208,21 +217,16 @@ if_then: IF expr THEN both_instructs %prec IFX {}
 
 
 expr: NBR { 
-	
-//$1;
-	//printf(" %d  \n", $1);
-	
-	//nbrs++;
+	$$ = $1;
 }
 | VAR_ID { 
-	//printf(" %s  \n", variables[vrbls]);
+	$$ = $1;
 	vrbls++;
 }
-| expr '+' expr {}
-| expr '-' expr {}
-| expr '*' expr {}
+| expr OPERATOR expr {
+	$$ = copy_3($1, $2, $3);
+}
 | expr MOD expr {}
-| expr '/' expr {} //division
 | expr DIV expr {} //quotient
 | expr DIFF expr {}
 | expr SUP expr {}
@@ -235,7 +239,7 @@ expr: NBR {
 | NOT expr {};
 
 affect: VAR_ID AFF expr ';' { 
-	//printf(" \n %s := %d ", variables[vrbls], $3);
+	printf("\n AFFECT  %s :=  ", $1);
 	vrbls ++;
 };
 
