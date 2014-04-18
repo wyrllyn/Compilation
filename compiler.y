@@ -14,16 +14,46 @@ void yyerror(char const* s);
 extern FILE* yyin;
 
 char * copy_3(char* first, char* second, char* third) {
-	char* temp = malloc(sizeof(first) + sizeof(second) + sizeof(third) + sizeof(char)*2);
+	char* temp = malloc(sizeof(char)*strlen(first) + sizeof(char)*strlen(second) + sizeof(char)*strlen(third) + sizeof(char)*3);
 	strcat(temp,first);
-	strcat(temp," ");
+	if (first[strlen(first) - 1] != '\n' && first[strlen(first) - 1] != '\t')
+		strcat(temp," ");
 	strcat(temp, second);
-	strcat(temp," ");
+	if (second[strlen(second) - 1] != '\n' && second[strlen(second) - 1] != '\t')
+		strcat(temp," ");
 	strcat(temp, third);
 	return temp;
 }
 
+char * getType(char * type) {
+	char * temp = "";
+	if (type == "INTEGER") {
+		temp = malloc(sizeof(char)*4);
+		temp = "int";	
+	}
+	else if (type == "CHAR") {
+		temp = malloc(sizeof(char)*5);
+		temp = "char";	
+	}
+	else if (type == "BOOLEAN") {
+		temp = malloc(sizeof(char)*4);
+		temp = "int";	
+	}
+	else {
+		yyerror("INVALID TYPE");
+	}
+	return temp;
+}
 
+char* indentation(int ind) {
+	char* indent_str = malloc((sizeof(char) * ind) + 2);
+	indent_str[0] = '\n';
+	for(int i = 1; i <= ind; i++) {
+		indent_str[i] = '\t';
+	}
+	indent_str[ind + 1] = '\0';
+	return indent_str;
+}
 
 %}
 %error-verbose
@@ -96,58 +126,103 @@ char * copy_3(char* first, char* second, char* third) {
 %type<type_string> declaration;
 %type<type_string> params;
 %type<type_string> params_not_empty;
+%type<type_string> function_header;
+%type<type_string> procedure_header;
+%type<type_string> endFound;
+%type<type_string> if_then;
+%type<type_string> instruct_single;
+%type<type_string> both_instructs;
+%type<type_string> block;
+%type<type_string> while_block;
+%type<type_string> instruct_multiple;
+%type<type_string> read_n_write;
+%type<type_string> core;
+%type<type_string> main;
+%type<type_string> function;
+%type<type_string> procedure;
+%type<type_string> function_core;
+%type<type_string> procedure_core;
+%type<type_string> program;
+%type<type_string> pg;
 
 
 
 %%
 
 program: pg core main {
-	printf("\n finished \n");
+	$$ = copy_3($1, $2, $3);
+
+	
+
+	printf("\n %s", $$);
+	//fprintf(""
 };
 
-/////////////////////////////////////
+/////////////////DONE ////////////////////
 
 pg: PROGRAM VAR_ID ';' {
 	vrbls++;
 	table_add_type_to_id($2, T_PROGRAM);
+	$$ = copy_3("#include<stdio.h> \n#include<stdlib.h>", "\n\n", "");
 	
 };
 
-///////////////////////////
+//////////  DONE /////////////////
 
 core: function core {
+
+	$$ = copy_3($1,$2, "");
 
 }
 |
 procedure core {
-
+	$$ = copy_3($1,$2, "");
 }
 | {
+	$$ = "\n";
 };
 
-///////////////////////
+////////////////   DONE ///////
 
 main: main_var beginFound instruct_multiple BIG_END {
+	$$ = copy_3("int main(int argc, char ** argv) { \n", $1, $3);
+	
+	$$ = copy_3($$, "\n}", "");
 };
 
 function: function_header function_var function_core {
+	$$ = copy_3($1, $2, "");
+	$$ = copy_3($$, $3, indentation(indent));
+
 };
 
 procedure: procedure_header function_var procedure_core {
-
+	$$ = copy_3($1, $2, indentation(indent));
+	$$ = copy_3($$, $3, indentation(indent));
 };
 
-//////////////////////////////////////////////////////
+///////////////////////////// DONE   /////////////////////////
 
 function_header: FUNCTION VAR_ID '(' params ')' COLON type ';' {
 	vrbls++;
 	table_add_type_to_id($2, T_FUNCTION);
-	printf("header\n");
+
+	$$ = copy_3(getType($7), $2, "(");
+	$$ = copy_3($$, $4, ")");
+	indent++;
+	$$ = copy_3($$, "{", indentation(indent));
+	$$ = copy_3($$, getType($7), $2);
+	$$ = copy_3($$, ";", indentation(indent));
+
 };
 
 procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
 	table_add_type_to_id($2, T_PROCEDURE);
 
+	$$ = copy_3("void", $2, "(");
+	$$ = copy_3($$, $4, ")");
+	$$ = copy_3($$, "{", indentation(indent));
+	indent++;
 }
 
 type: INTEGER { $$ = "INTEGER"; }
@@ -159,7 +234,6 @@ type: INTEGER { $$ = "INTEGER"; }
 
 params: params_not_empty {
 	$$ = $1;
-	printf(" param declare \n %s \n", $$);
 }
 | {
 	$$ = "";
@@ -173,30 +247,20 @@ params_not_empty: ids {
 	$$ = copy_3($1, ",", $3);
 };
 
-ids: VAR_ID ',' ids { vrbls++;
+ids: VAR_ID ',' ids {
+	vrbls++;
 	$$ = copy_3($3, ",", $1);
 }
-| VAR_ID  COLON type {
+| VAR_ID COLON type {
 	// TYPE TODO symbol
 	//#############################
-	char* temp = "";
-	if ($3 == "INTEGER") {
-		temp = malloc(sizeof(char)*3);
-		temp = "int";	
-	}
-	else if ($3 == "CHAR") {
-		temp = malloc(sizeof(char)*4);
-		temp = "char";	
-	}
-	else if ($3 == "BOOLEAN") {
-		temp = malloc(sizeof(char)*7);
-		temp = "boolean";	
-	}
-	else {
-		printf("\n WTF %s", $3);
-	}
+	char* temp = getType($3);
+
+
 
 	$$ = copy_3(temp, $1, "");
+
+	printf("\nshow me dollar%s", $$);
 	vrbls++;
 };
 
@@ -204,72 +268,129 @@ ids: VAR_ID ',' ids { vrbls++;
 
 function_var: VAR declaration {
 	$$ = $2;
-	printf("\n declare \n %s \n", $$);
 }
 | {
 	$$ = "";
 };
 
 main_var: VAR declaration {
-	$$ = $2;
+	indent++;
+	$$ = copy_3(indentation(indent), $2, "");
+	
 } |
- {
+ {	
+	indent++;
 	$$ = "";
 };
 
 declaration: ids ';' followed_by {
-	$$ = copy_3($1,"; \n", $3);
+	$$ = copy_3($1,";", "");
+	$$ = copy_3($$, indentation(indent), $3);
 };
 
 
 followed_by: VAR ids ';' followed_by  {
-	$$ = copy_3($2, "; \n", $4);
+	$$ = copy_3($2, ";", "");
+	$$ = copy_3($$, indentation(indent), $4);
 }
 | {
 	$$ = "";
 };
 
 
-///////////////////////////////////////////
+////////////////// DONE /////////////////////////
 
-function_core: block {};
+function_core: block {
+	$$ = $1;
+};
 
-procedure_core: block {};
+procedure_core: block {
+	$$ = $1;
+};
 
 //////////////////////////////////
 
-block: beginFound instruct_multiple endFound';' {} | 
-beginFound endFound ';' {};
+block: beginFound instruct_multiple endFound';' {
+	$$ = copy_3("", $2, $3);
+} | 
+beginFound endFound ';' {
+	$$ = copy_3(indentation(indent), $2, "");
+};
 
 
-while_block: WHILE expr DO block {}; 
+while_block: WHILE expr DO block {
+	$$ = copy_3("while", "(", $2);
+	$$ = copy_3($$, ")", "{");
+	indent++;
+	$$ = copy_3($$, "", $4);
+	
+}; 
 
-instruct_multiple: affect instruct_multiple {}
-| instruct_single {}
-| if_then instruct_multiple {}
-| read_n_write instruct_multiple {}
-| while_block instruct_multiple{};
+instruct_multiple: affect instruct_multiple {
+	$$ = copy_3(indentation(indent),$1, $2);
+}
+| instruct_single {
+	$$ = $1;
+}
+| if_then instruct_multiple {
+	$$ = copy_3(indentation(indent),$1, $2);
+}
+| read_n_write instruct_multiple {
+	$$ = copy_3(indentation(indent),$1, $2);
+}
+| while_block instruct_multiple{
+	$$ = copy_3(indentation(indent),$1, $2);
+};
 
+
+//////TODO
 read_n_write: READLN ID_TO_READ ';' {
  //verification of ID_TO_READ presence into symbol table
+	$$ = copy_3($1,")",";");
 }
-| WRITELN ID_TO_WRITE ';' {}
+| WRITELN ID_TO_WRITE ';' {	
+	$$ = copy_3($1,")",";");
+}
 | WRITELN FUNCTION_TO_WRITE ';' {
-	printf("function \n");}
-| WRITELN STRING_TO_WRITE ';' {};
+	$$ = copy_3($1,")",";");
+}
+| WRITELN STRING_TO_WRITE ';' {
+	$$ = copy_3($1,")",";");
+};
 
 
-instruct_single: affect {}
-| if_then {}
-| read_n_write {}
-| while_block {};
+instruct_single: affect {
+	$$ = copy_3(indentation(indent), $1, "");
+}
+| if_then {
+	$$ = copy_3(indentation(indent), $1, "");
+}
+| read_n_write {
+	$$ = copy_3(indentation(indent), $1, "");
+}
+| while_block {
+	$$ = copy_3(indentation(indent), $1, "");
+};
 
-both_instructs: block {}
-| instruct_single {} ;
+both_instructs: block {
+	$$ = $1;
+}
+| instruct_single {
+	$$ = $1;
+} ;
 
 
-if_then: IF expr THEN both_instructs %prec IFX {}
-| IF expr THEN both_instructs ELSE both_instructs {};
+if_then: IF expr THEN both_instructs %prec IFX {
+	$$ = copy_3("if", "(", $2);
+	$$ = copy_3($$, ")", "");
+	$$ = copy_3($$, $4, "");
+}
+| IF expr THEN both_instructs ELSE both_instructs {
+	$$ = copy_3("if", "(", $2);
+	$$ = copy_3($$, ")", indentation(indent));
+	$$ = copy_3($$, $4, indentation(indent));
+	$$ = copy_3($$, "else", $6);	
+};
 
 
 expr: NBR { 
@@ -295,7 +416,7 @@ expr: NBR {
 	$$ = copy_3($1, $2, $3);
 }
 | expr MOD expr {
-	$$ = copy_3($1, $2, $3);
+	$$ = copy_3($1, "%", $3);
 }
 | expr DIV expr {
 	$$ = copy_3($1, $2, $3);
@@ -334,15 +455,18 @@ expr: NBR {
 affect: VAR_ID AFF expr ';' { 
 	$$ = copy_3($1, "=", $3);
 	$$ = copy_3($$, ";", "");
-	printf("\n AFFECT  %s ", $$);
 	vrbls ++;
 };
 
-/////////////////////////////////////
+/////////////// DONE //////////////////////
 
-beginFound: BEGIN_BLOCK {indent++;};
+beginFound: BEGIN_BLOCK {
+};
 
-endFound: END_BLOCK {indent--;};
+endFound: END_BLOCK {
+	indent--;
+	$$ = copy_3(indentation(indent), "}", "");
+};
 
 %%
 

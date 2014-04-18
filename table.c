@@ -45,7 +45,6 @@ int table_index(char* id){
 	}
 	for (int i = 0; i < current_size_cell; i++) {
 		if (strcmp(table[i].id, id) == 0) {
-			printf(" ////////// %d ///////// \n ", i);
 			return i;
 		}
 	}

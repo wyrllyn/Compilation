@@ -4,7 +4,7 @@ prog: compiler.tab.o lex.yy.o table.o
 	gcc -o $@ $^ -lfl
 
 compiler.tab.o: compiler.tab.c compiler.tab.h
-	gcc -o $@ -c compiler.tab.c
+	gcc -o $@ -c compiler.tab.c -std=c99
 
 compiler.tab.c compiler.tab.h: compiler.y table.o
 	bison compiler.y --defines=compiler.tab.h

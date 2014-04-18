@@ -33,5 +33,6 @@ void table_add_type_to_id(char* id, Type type);
 void table_print();
 void table_add_number(int nb);
 void print_type(int index);
+void delete_tables();
 
 #endif

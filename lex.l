@@ -148,7 +148,6 @@ id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 <READ>({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)*")" {
 	yylval.type_string = (char*)malloc((yyleng)*sizeof(char));
 	strncpy(yylval.type_string, yytext, yyleng - 1);
-	printf("\n to read %s \n", yylval.type_string);
 	yylval.type_string = copy(yytext);
 	// save it ?
 	BEGIN(INITIAL);
@@ -167,7 +166,6 @@ id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 /* an id */
 	yylval.type_string = (char*)malloc((yyleng)*sizeof(char));
 	strncpy(yylval.type_string, yytext, yyleng - 1);
-	printf("\n to write %s \n", yylval.type_string);
 	// save it ? 
 	BEGIN(INITIAL);
 	return ID_TO_WRITE;
@@ -178,7 +176,6 @@ id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 // a function
 	yylval.type_string = (char*)malloc((yyleng)*sizeof(char));
 	strncpy(yylval.type_string, yytext, yyleng - 1);
-	printf("\n to write %s \n", yylval.type_string);
 	BEGIN(INITIAL);
 	return FUNCTION_TO_WRITE;
 }
@@ -187,7 +184,6 @@ id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 // a string
 	yylval.type_string = (char*)malloc((yyleng)*sizeof(char));
 	strncpy(yylval.type_string, yytext, yyleng - 1);
-	printf("\n to write %s \n", yylval.type_string);
 	BEGIN(INITIAL);
 	return STRING_TO_WRITE;
 }
@@ -229,12 +225,10 @@ id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 
 "end" {
 	yylval.type_string = copy(yytext);
-	printf("end normal \n");
 	return END_BLOCK;
 }
 "end." {
 	yylval.type_string = copy(yytext);
-	printf("end. \n");
 	return BIG_END;
 }
 
