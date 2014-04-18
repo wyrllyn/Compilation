@@ -6,12 +6,13 @@
 #include <string.h>
 
 enum t_type {
-	T_FLOAT,
+	T_PROGRAM,
 	T_INT,
-	T_REAL,
 	T_CHAR,
 	T_BOOLEAN,
-	T_FUNCTION
+	T_FUNCTION,
+	T_PROCEDURE,
+	UNKNOWN
 };
 typedef enum t_type Type;
 
@@ -22,13 +23,15 @@ struct t_cell {
 typedef struct t_cell Cell;
 
 Cell* table;
-//int table_size = 50;
-//int current_size = 0;
+int* numbers;
+char** variables;
 
 void init_table(int size);
 void table_add_id(char* id);
 int table_contains(char* id);
 void table_add_type_to_id(char* id, Type type);
 void table_print();
+void table_add_number(int nb);
+void print_type(int index);
 
 #endif

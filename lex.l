@@ -27,6 +27,7 @@ id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 
 {CHIFFRE}+ {
 	yylval.integer = atoi(yytext);
+	table_add_number(yylval.integer);
 	return NBR;
 }
 

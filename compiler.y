@@ -1,11 +1,13 @@
 %{
-#include <stdio.h>
-#include <string.h>
+
 #include "table.h"
 
 extern int yyparse();
 
 int line = 1;
+int indent = 0;
+int nbrs = 0;
+int vrbls = 0;
 
 int yylex();
 void yyerror(char const* s);
@@ -22,6 +24,7 @@ extern FILE* yyin;
 %nonassoc IFX
 %nonassoc ELSE
 
+
 %union {
 	int integer;
 }
@@ -30,7 +33,11 @@ extern FILE* yyin;
 	char* string;
 }
 
-%token NBR
+/*%union {
+	enum t_type tt;
+}*/
+
+%token<int> NBR
 %token AFF
 %token DIFF
 %token INF_EQUAL
@@ -57,7 +64,7 @@ extern FILE* yyin;
 %token BEGIN_BLOCK
 %token END_BLOCK
 %token BIG_END
-%token VAR_ID
+%token<string> VAR_ID
 %token AND
 %token OR
 %token NOT
@@ -65,6 +72,9 @@ extern FILE* yyin;
 %token ID_TO_WRITE
 %token STRING_TO_WRITE
 %token FUNCTION_TO_WRITE
+
+%type<int> expr;
+//%type<tt> type;
 
 %%
 
@@ -75,6 +85,9 @@ program: pg core main {
 /////////////////////////////////////
 
 pg: PROGRAM VAR_ID ';' {
+	printf(" //////////////////  %s //////////// ", $2);
+	vrbls++;
+	table_add_type_to_id($2, T_PROGRAM);
 	
 };
 
@@ -92,7 +105,7 @@ procedure core {
 
 ///////////////////////
 
-main: main_var BEGIN_BLOCK instruct_multiple BIG_END {
+main: main_var beginFound instruct_multiple BIG_END {
 };
 
 function: function_header function_var function_core {
@@ -105,14 +118,17 @@ procedure: procedure_header function_var procedure_core {
 //////////////////////////////////////////////////////
 
 function_header: FUNCTION VAR_ID '(' params ')' COLON type ';' {
+	vrbls++;
+	table_add_type_to_id($2, T_FUNCTION);
 	printf("header\n");
 };
 
 procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
+	table_add_type_to_id($2, T_PROCEDURE);
 
 }
 
-type: INTEGER {}
+type: INTEGER { /*$$ = T_INT;*/ }
 | CHAR {}
 | BOOLEAN {
 };
@@ -128,9 +144,10 @@ params_not_empty: ids COLON type {
 | ids COLON type ',' params_not_empty {
 };
 
-ids: VAR_ID','ids {
+ids: VAR_ID','ids { vrbls++;
 }
 | VAR_ID {
+	vrbls++;
 };
 
 /////////////////////////////////////////
@@ -156,8 +173,8 @@ procedure_core: block {};
 
 //////////////////////////////////
 
-block: BEGIN_BLOCK instruct_multiple END_BLOCK';' {} | 
-BEGIN_BLOCK END_BLOCK ';' {};
+block: beginFound instruct_multiple endFound';' {} | 
+beginFound endFound ';' {};
 
 
 while_block: WHILE expr DO block {}; 
@@ -190,8 +207,17 @@ if_then: IF expr THEN both_instructs %prec IFX {}
 | IF expr THEN both_instructs ELSE both_instructs {};
 
 
-expr: NBR {}
-| VAR_ID {}
+expr: NBR { 
+	
+//$1;
+	//printf(" %d  \n", $1);
+	
+	//nbrs++;
+}
+| VAR_ID { 
+	//printf(" %s  \n", variables[vrbls]);
+	vrbls++;
+}
 | expr '+' expr {}
 | expr '-' expr {}
 | expr '*' expr {}
@@ -208,7 +234,16 @@ expr: NBR {}
 | expr OR expr {}
 | NOT expr {};
 
-affect: VAR_ID AFF expr ';' {};
+affect: VAR_ID AFF expr ';' { 
+	//printf(" \n %s := %d ", variables[vrbls], $3);
+	vrbls ++;
+};
+
+/////////////////////////////////////
+
+beginFound: BEGIN_BLOCK {indent++;};
+
+endFound: END_BLOCK {indent--;};
 
 %%
 
@@ -231,6 +266,8 @@ int main(int argc, char* argv[]) {
 	if (f != NULL) {
 		fclose(f);
 	}
+
+	delete_tables();
 }
 
 void yyerror(char const* s) {
