@@ -38,17 +38,35 @@ id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 }
 
 
-"-"|"+"|"/"|"*"|"%" {
+"+" {
 	yylval.type_string = copy(yytext);
-	return OPERATOR;
+	return PLUS;
+}
+
+
+"-" {
+	yylval.type_string = copy(yytext);
+	return MINUS;
+}
+
+"/" {
+	yylval.type_string = copy(yytext);
+	return DIVIDE;
+}
+
+"*"  {
+	yylval.type_string = copy(yytext);
+	return TIMES;
 }
 
 ";"|"," {
-
+	yylval.type_string = copy(yytext);
+	return yytext[0];
 }
 
 "("|")" {
-
+	yylval.type_string = copy(yytext);
+	return yytext[0];
 }
 
 "and" {

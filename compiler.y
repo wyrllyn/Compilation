@@ -14,9 +14,11 @@ void yyerror(char const* s);
 extern FILE* yyin;
 
 char * copy_3(char* first, char* second, char* third) {
-	char* temp = malloc(sizeof(first) + sizeof(second) + sizeof(third));
+	char* temp = malloc(sizeof(first) + sizeof(second) + sizeof(third) + sizeof(char)*2);
 	strcat(temp,first);
+	strcat(temp," ");
 	strcat(temp, second);
+	strcat(temp," ");
 	strcat(temp, third);
 	return temp;
 }
@@ -27,8 +29,8 @@ char * copy_3(char* first, char* second, char* third) {
 %error-verbose
 
 %left INF SUP DIFF INF_EQUAL SUP_EQUAL NOT OR AND '='
-%left '+' '-'
-%left '*' '/' DIV
+%left PLUS MINUS
+%left DIVIDE TIMES DIV
 %right MOD
 
 %nonassoc IFX
@@ -79,10 +81,22 @@ char * copy_3(char* first, char* second, char* third) {
 %token<type_string> ID_TO_WRITE
 %token<type_string> STRING_TO_WRITE
 %token<type_string> FUNCTION_TO_WRITE
-%token<type_string> OPERATOR
+%token<type_string> PLUS
+%token<type_string> MINUS
+%token<type_string> DIVIDE
+%token<type_string> TIMES
 
 %type<type_string> type;
 %type<type_string> expr;
+%type<type_string> affect;
+%type<type_string> ids;
+%type<type_string> function_var;
+%type<type_string> main_var;
+%type<type_string> followed_by;
+%type<type_string> declaration;
+%type<type_string> params;
+%type<type_string> params_not_empty;
+
 
 
 %%
@@ -94,7 +108,6 @@ program: pg core main {
 /////////////////////////////////////
 
 pg: PROGRAM VAR_ID ';' {
-	printf(" //////////////////  %s //////////// ", $2);
 	vrbls++;
 	table_add_type_to_id($2, T_PROGRAM);
 	
@@ -142,36 +155,79 @@ type: INTEGER { $$ = "INTEGER"; }
 | BOOLEAN { $$ = "BOOLEAN";
 };
 
-///////////////////////////////////////
+/////////////////////////////////////// DONE ////////
 
-params: params_not_empty {}
-| {};
-
-
-params_not_empty: ids COLON type {
+params: params_not_empty {
+	$$ = $1;
+	printf(" param declare \n %s \n", $$);
 }
-| ids COLON type ',' params_not_empty {
+| {
+	$$ = "";
 };
 
-ids: VAR_ID','ids { vrbls++;
+
+params_not_empty: ids {
+	$$ = $1;
 }
-| VAR_ID {
+| ids ',' params_not_empty {
+	$$ = copy_3($1, ",", $3);
+};
+
+ids: VAR_ID ',' ids { vrbls++;
+	$$ = copy_3($3, ",", $1);
+}
+| VAR_ID  COLON type {
+	// TYPE TODO symbol
+	//#############################
+	char* temp = "";
+	if ($3 == "INTEGER") {
+		temp = malloc(sizeof(char)*3);
+		temp = "int";	
+	}
+	else if ($3 == "CHAR") {
+		temp = malloc(sizeof(char)*4);
+		temp = "char";	
+	}
+	else if ($3 == "BOOLEAN") {
+		temp = malloc(sizeof(char)*7);
+		temp = "boolean";	
+	}
+	else {
+		printf("\n WTF %s", $3);
+	}
+
+	$$ = copy_3(temp, $1, "");
 	vrbls++;
 };
 
-/////////////////////////////////////////
+///////////////////////////////////////// DONE //////
 
-function_var: VAR declaration {}
-| {};
+function_var: VAR declaration {
+	$$ = $2;
+	printf("\n declare \n %s \n", $$);
+}
+| {
+	$$ = "";
+};
 
-main_var: VAR declaration {} |
- {};
+main_var: VAR declaration {
+	$$ = $2;
+} |
+ {
+	$$ = "";
+};
 
-declaration: ids COLON type followed_by ';' {};
+declaration: ids ';' followed_by {
+	$$ = copy_3($1,"; \n", $3);
+};
 
 
-followed_by: ids COLON type followed_by ';' {}
-| {};
+followed_by: VAR ids ';' followed_by  {
+	$$ = copy_3($2, "; \n", $4);
+}
+| {
+	$$ = "";
+};
 
 
 ///////////////////////////////////////////
@@ -223,23 +279,62 @@ expr: NBR {
 	$$ = $1;
 	vrbls++;
 }
-| expr OPERATOR expr {
+| expr PLUS expr {
 	$$ = copy_3($1, $2, $3);
 }
-| expr MOD expr {}
-| expr DIV expr {} //quotient
-| expr DIFF expr {}
-| expr SUP expr {}
-| expr INF expr {}
-| expr '=' expr {}
-| expr SUP_EQUAL expr {}
-| expr INF_EQUAL expr {}
-| expr AND expr {}
-| expr OR expr {}
-| NOT expr {};
+
+| expr MINUS expr {
+	$$ = copy_3($1, $2, $3);
+}
+
+| expr TIMES expr {
+	$$ = copy_3($1, $2, $3);
+}
+
+| expr DIVIDE expr {
+	$$ = copy_3($1, $2, $3);
+}
+| expr MOD expr {
+	$$ = copy_3($1, $2, $3);
+}
+| expr DIV expr {
+	$$ = copy_3($1, $2, $3);
+}
+| expr DIFF expr {
+	$$ = copy_3($1, "!=", $3);
+}
+| '(' expr ')' {
+	$$ = copy_3("(", $2, ")");
+}
+| expr SUP expr {
+	$$ = copy_3($1, $2, $3);
+}
+| expr INF expr {
+	$$ = copy_3($1, $2, $3);
+}
+| expr '=' expr {
+	$$ = copy_3($1, "==", $3);
+}
+| expr SUP_EQUAL expr {
+	$$ = copy_3($1, $2, $3);
+}
+| expr INF_EQUAL expr {
+	$$ = copy_3($1, $2, $3);
+}
+| expr AND expr {
+	$$ = copy_3($1, "&&", $3);
+}
+| expr OR expr {
+	$$ = copy_3($1, "||", $3);
+}
+| NOT expr {
+	$$ = copy_3($1, $2, "");
+};
 
 affect: VAR_ID AFF expr ';' { 
-	printf("\n AFFECT  %s :=  ", $1);
+	$$ = copy_3($1, "=", $3);
+	$$ = copy_3($$, ";", "");
+	printf("\n AFFECT  %s ", $$);
 	vrbls ++;
 };
 
