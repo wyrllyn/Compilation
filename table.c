@@ -17,6 +17,7 @@ void table_add_id(char* id) {
 			table[current_size_cell].id = id;
 			table[current_size_cell].type = UNKNOWN;
 			table[current_size_cell].parameters = NULL;
+			table[current_size_cell].pSize = 0;
 			table[current_size_cell].line = -1;
 			table[current_size_cell].into = NULL;
 			current_size_cell++;
@@ -30,11 +31,15 @@ void table_add_type_to_id(char* id, Type type) {
 		table[table_index(id)].type = type;
 }
 
-/*
-void addParameters() {
 
+void addParameters(char* func, Type* params, int size) {
+	table[table_index(func)].parameters = malloc(sizeof(Type) * size);
+	table[table_index(func)].pSize = size;
+	for (int i = 0; i < size ; i++) {
+		table[table_index(func)].parameters[i] = params[i];
+	}
 }
-*/
+
 void addLine(int l, int index) {
 	if (table[index].line == -1)
 		table[index].line = l;
@@ -66,30 +71,57 @@ int table_contains(char* id) {
 void table_print() {
 	printf("\n");
 	for (int i = 0; i < current_size_cell; i++) {
-		printf("%d: id=%s, type= ", table[i].line, table[i].id);
+		printf(" \n %d: id=%s, type= : ", table[i].line, table[i].id);
 		print_type(i);
+		printf(" | params : ");
+		print_type_params(i);
 	}
 }
+
+void print_type_params(int index) {
+	for (int i = 0 ; i < table[index].pSize ; i++) {
+		switch ( table[index].parameters[i] ) {
+			case T_PROGRAM:
+	 		 	printf(" PROGRAM ");
+	 		 break;
+			case T_BOOLEAN:
+	  			printf(" BOOLEAN ");
+	 		 break;
+			case T_INT:
+	  			printf(" INT ");
+	 		 break;
+			case T_CHAR:
+	  			printf(" CHAR ");
+	 		 break;
+
+			default:
+	 		 	printf(" DOES NOT HAVE A TYPE ");
+	 		 break;
+		}
+	}
+}
+
+
 
 
 void print_type(int index) {
 
 	switch ( table[index].type ) {
 		case T_PROGRAM:
- 		 	printf(" PROGRAM \n");
+ 		 	printf(" PROGRAM ");
  		 break;
 		case T_BOOLEAN:
-  			printf(" BOOLEAN \n");
+  			printf(" BOOLEAN ");
  		 break;
 		case T_INT:
-  			printf(" INT \n");
+  			printf(" INT ");
  		 break;
 		case T_CHAR:
-  			printf(" CHAR \n");
+  			printf(" CHAR ");
  		 break;
 
 		default:
- 		 	printf(" DOES NOT HAVE A TYPE \n");
+ 		 	printf(" DOES NOT HAVE A TYPE ");
  		 break;
 	}
 }
