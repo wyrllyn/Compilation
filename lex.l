@@ -235,7 +235,9 @@ id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)* {
 	yylval.type_string = (char*)malloc((yyleng+1)*sizeof(char));
 	strncpy(yylval.type_string, yytext, yyleng + 1);
+
 	table_add_id(yylval.type_string);
+	addLine(line, table_index(yylval.type_string) );
 	yylval.type_string = copy(yytext);
 	return VAR_ID;
 }

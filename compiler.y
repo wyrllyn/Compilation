@@ -7,11 +7,12 @@ extern int yyparse();
 int line = 1;
 int indent = 0;
 int nbrs = 0;
-int vrbls = 0;
 
 int yylex();
 void yyerror(char const* s);
 extern FILE* yyin;
+
+Type g_type = UNKNOWN;
 
 char * copy_3(char* first, char* second, char* third) {
 	char* temp = malloc(sizeof(char)*strlen(first) + sizeof(char)*strlen(second) + sizeof(char)*strlen(third) + sizeof(char)*3);
@@ -27,20 +28,34 @@ char * copy_3(char* first, char* second, char* third) {
 
 char * getType(char * type) {
 	char * temp = "";
-	if (type == "INTEGER") {
+	if (strcmp(type, "INTEGER") == 0) {
 		temp = malloc(sizeof(char)*4);
 		temp = "int";	
 	}
-	else if (type == "CHAR") {
+	else if (strcmp(type, "CHAR") == 0) {
 		temp = malloc(sizeof(char)*5);
 		temp = "char";	
 	}
-	else if (type == "BOOLEAN") {
+	else if (strcmp(type, "BOOLEAN") == 0) {
 		temp = malloc(sizeof(char)*4);
 		temp = "int";	
 	}
 	else {
 		yyerror("INVALID TYPE");
+	}
+	return temp;
+}
+
+Type returnType(char* type) {
+	Type temp = UNKNOWN;
+	if (strcmp(type, "INTEGER") == 0) {
+		temp = T_INT;	
+	}
+	else if (strcmp(type, "CHAR") == 0) {
+		temp = T_CHAR;	
+	}
+	else if (strcmp(type, "BOOLEAN") == 0) {
+		temp = T_BOOLEAN;	
 	}
 	return temp;
 }
@@ -161,7 +176,6 @@ program: pg core main {
 /////////////////DONE ////////////////////
 
 pg: PROGRAM VAR_ID ';' {
-	vrbls++;
 	table_add_type_to_id($2, T_PROGRAM);
 	$$ = copy_3("#include<stdio.h> \n#include<stdlib.h>", "\n\n", "");
 	
@@ -200,14 +214,14 @@ procedure: procedure_header function_var procedure_core {
 	$$ = copy_3($$, $3, indentation(indent));
 };
 
-///////////////////////////// DONE   /////////////////////////
 
 function: FUNCTION VAR_ID '(' params ')' COLON type ';'
-
 function_var beginFound instruct_multiple endFound';'
- {
-	vrbls++;
-	table_add_type_to_id($2, T_FUNCTION);
+{
+	
+
+	//TODO modif
+	table_add_type_to_id($2, returnType($7));
 
 	$$ = copy_3(getType($7), $2, "(");
 	$$ = copy_3($$, $4, ")");
@@ -222,8 +236,10 @@ function_var beginFound instruct_multiple endFound';'
 	$$ = copy_3($$, "\n", $12);
 };
 
+
+///////////////////////////// DONE   /////////////////////////
+
 procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
-	table_add_type_to_id($2, T_PROCEDURE);
 
 	$$ = copy_3("void", $2, "(");
 	$$ = copy_3($$, $4, ")");
@@ -248,22 +264,25 @@ params: params_not_empty {
 
 params_not_empty: ids {
 	$$ = $1;
+	g_type = UNKNOWN;
 }
 | ids ',' params_not_empty {
 	$$ = copy_3($1, ",", $3);
+	g_type = UNKNOWN;
 };
 
 ids: VAR_ID ',' ids {
-	vrbls++;
 	$$ = copy_3($3, ",", $1);
+	table_add_type_to_id($1, g_type);
 }
 | VAR_ID COLON type {
 	// TYPE TODO symbol
-	//#############################
+
+
+	table_add_type_to_id($1, returnType($3));
+	g_type = returnType($3);
 	char* temp = getType($3);
 	$$ = copy_3(temp, $1, "");
-
-	vrbls++;
 };
 
 ///////////////////////////////////////// DONE //////
@@ -398,7 +417,7 @@ expr: NBR {
 }
 | VAR_ID { 
 	$$ = $1;
-	vrbls++;
+	;
 }
 | expr PLUS expr {
 	$$ = copy_3($1, $2, $3);
@@ -464,7 +483,6 @@ expr: NBR {
 affect: VAR_ID AFF expr ';' { 
 	$$ = copy_3($1, "=", $3);
 	$$ = copy_3($$, ";", "");
-	vrbls ++;
 };
 
 /////////////// DONE //////////////////////

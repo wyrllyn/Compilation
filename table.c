@@ -3,12 +3,9 @@
 int table_size = 50;
 int current_size_cell = 0;
 int current_size_variables = 0;
-int current_size_numbers = 0;
 
 void init_table(int size) {
 	table = (Cell*)malloc(sizeof(Cell) * size);
-	numbers = (int*)malloc(sizeof(int) * size);
-	variables = (char**)malloc(sizeof(char*) * size);
 }
 
 void table_add_id(char* id) {
@@ -19,23 +16,28 @@ void table_add_id(char* id) {
 		if (table_contains(id) == 0) {
 			table[current_size_cell].id = id;
 			table[current_size_cell].type = UNKNOWN;
+			table[current_size_cell].parameters = NULL;
+			table[current_size_cell].line = -1;
+			table[current_size_cell].into = NULL;
 			current_size_cell++;
 		}
-		variables[current_size_variables] = id;
-		current_size_variables++;
 	}
 	
 }
 
-void table_add_number(int nb) {
-	if (current_size_numbers == table_size ) {
-		printf("ERROR: max table size reached");
-		//TODO: bump table size
-	}
-	else {
-		numbers[current_size_numbers] = nb;
-		current_size_numbers++;
-	}
+void table_add_type_to_id(char* id, Type type) {
+	if (table[table_index(id)].type == UNKNOWN)
+		table[table_index(id)].type = type;
+}
+
+/*
+void addParameters() {
+
+}
+*/
+void addLine(int l, int index) {
+	if (table[index].line == -1)
+		table[index].line = l;
 }
 
 int table_index(char* id){
@@ -59,24 +61,16 @@ int table_contains(char* id) {
 	return 0; //false
 }
 
-void table_add_type_to_id(char* id, Type type) {
-	table[table_index(id)].type = type;
-}
+
 
 void table_print() {
+	printf("\n");
 	for (int i = 0; i < current_size_cell; i++) {
-		printf("%d: id=%s, type= ", i, table[i].id);
+		printf("%d: id=%s, type= ", table[i].line, table[i].id);
 		print_type(i);
 	}
-
-/*	for (int i = 0; i < current_size_variables; i++) {
-		printf("%d: id=%s \n", i, variables[i]);
-	} 
-
-	for (int i = 0; i < current_size_numbers; i++) {
-		printf("%d: number found = %d \n", i, numbers[i]);
-	}*/
 }
+
 
 void print_type(int index) {
 
@@ -84,15 +78,16 @@ void print_type(int index) {
 		case T_PROGRAM:
  		 	printf(" PROGRAM \n");
  		 break;
+		case T_BOOLEAN:
+  			printf(" BOOLEAN \n");
+ 		 break;
 		case T_INT:
   			printf(" INT \n");
  		 break;
-		case T_FUNCTION:
-  			printf(" FUNCTION \n");
+		case T_CHAR:
+  			printf(" CHAR \n");
  		 break;
-		case T_PROCEDURE:
-  			printf(" PROCEDURE \n");
- 		 break;
+
 		default:
  		 	printf(" DOES NOT HAVE A TYPE \n");
  		 break;
@@ -101,6 +96,4 @@ void print_type(int index) {
 
 void delete_tables(){
 	free(table);
-	free(numbers);
-	free(variables);
 };
