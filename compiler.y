@@ -35,6 +35,7 @@ char * copy_3(char* first, char* second, char* third) {
 	return temp;
 }
 
+// unused, remove this
 Type* truncate_params(Type* params, int size, int declared) {
 	Type* temp = malloc(sizeof(Type) * (size - declared));
 	for (int i = 0; i < (size - declared); i++) {
@@ -72,6 +73,25 @@ char * getType(char * type) {
 	}
 	else {
 		yyerror("INVALID TYPE");
+	}
+	return temp;
+}
+
+char* getTypeStr(Type type) {
+	char * temp = "";
+	switch (type) {
+	case T_INT:
+		temp = malloc(sizeof(char)*4);
+		temp = "int";	
+		break;
+	case T_CHAR:
+		temp = malloc(sizeof(char)*5);
+		temp = "char";	
+		break;
+	case T_BOOLEAN:
+		temp = malloc(sizeof(char)*4);
+		temp = "int";
+		break;
 	}
 	return temp;
 }
@@ -331,7 +351,12 @@ params_not_empty: ids {
 };
 
 ids: VAR_ID ',' ids {
-	$$ = copy_3($3, ",", $1);
+	if (incWD == 1) {
+		$$ = copy_3($3, ",", $1);
+	} else {
+		$$ = copy_3($3, ",", getTypeStr(g_type));
+		$$ = copy_3($$, $1, "");
+	}
 	//////
 	if (table_contains($1)) {
 		if (table[table_index($1)].into != NULL && strcmp(table[table_index($1)].into, "TEMP_FUNC") == 0) {
@@ -607,6 +632,7 @@ endFunc: END_BLOCK {
 int main(int argc, char* argv[]) {
 	init_table(50);
 	FILE* f = NULL;
+	char* name;
 	
 	if (argc > 1) {
 		// open input file
@@ -618,7 +644,7 @@ int main(int argc, char* argv[]) {
 		yyin = f;
 
 		// manage output file
-		char* name = remove_file_extension(argv[1]);
+		name = remove_file_extension(argv[1]);
 		strcat(name, ".c");
 		printf("\n### Writing in file %s ###\n", name);
 		out = fopen(name,"w");
@@ -626,14 +652,15 @@ int main(int argc, char* argv[]) {
 	yyparse();
 
 	table_print();
-	printf("\n");
-	
+
 	if (f != NULL) {
 		fclose(f);
 		fclose(out);
+		compile(name);
 	}
 
 	delete_tables();
+	printf("\n");
 }
 
 void yyerror(char const* s) {
