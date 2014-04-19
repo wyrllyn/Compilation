@@ -1,6 +1,7 @@
 %{
 
 #include "table.h"
+#include "utils.h"
 
 extern int yyparse();
 
@@ -11,6 +12,8 @@ int nbrs = 0;
 int yylex();
 void yyerror(char const* s);
 extern FILE* yyin;
+
+FILE* out;
 
 Type g_type = UNKNOWN;
 Type * typesParam = NULL;
@@ -201,7 +204,7 @@ program: pg core main {
 	
 
 	printf("\n %s", $$);
-	//fprintf(""
+	fprintf(out, "%s", $$);
 };
 
 /////////////////DONE ////////////////////
@@ -604,21 +607,30 @@ endFunc: END_BLOCK {
 int main(int argc, char* argv[]) {
 	init_table(50);
 	FILE* f = NULL;
+	
 	if (argc > 1) {
+		// open input file
 		f = fopen(argv[1], "r");
 		if (f == NULL) {
 			fprintf(stderr, "Impossible d'ouvrir %s\n", argv[1]);
 			return -1;
 		}
 		yyin = f;
+
+		// manage output file
+		char* name = remove_file_extension(argv[1]);
+		strcat(name, ".c");
+		printf("\n### Writing in file %s ###\n", name);
+		out = fopen(name,"w");
 	}
 	yyparse();
-	// My code goes here
-	table_print();
 
-	// My code ends here
+	table_print();
+	printf("\n");
+	
 	if (f != NULL) {
 		fclose(f);
+		fclose(out);
 	}
 
 	delete_tables();

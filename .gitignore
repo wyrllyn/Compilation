@@ -21,3 +21,5 @@
 *.tab.*
 *.yy.*
 prog
+test.c
+test
