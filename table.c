@@ -9,20 +9,25 @@ void init_table(int size) {
 }
 
 void table_add_id(char* id) {
+	// bump table size if required
 	if (current_size_cell == table_size || current_size_variables == table_size ) {
-		printf("ERROR: max table size reached");
-		//TODO: bump table size
-	} else {
-		if (table_contains(id) == 0) {
-			table[current_size_cell].id = id;
-			table[current_size_cell].type = UNKNOWN;
-			table[current_size_cell].parameters = NULL;
-			table[current_size_cell].line = -1;
-			table[current_size_cell].into = NULL;
-			current_size_cell++;
+		Cell* temp = malloc(sizeof(Cell) * table_size + 10);
+		for (int i = 0; i < table_size; i++) {
+			temp[i] = table[i];
 		}
+		free(table);
+		table = temp;
+		table_size = table_size + 10;
 	}
-	
+
+	if (table_contains(id) == 0) {
+		table[current_size_cell].id = id;
+		table[current_size_cell].type = UNKNOWN;
+		table[current_size_cell].parameters = NULL;
+		table[current_size_cell].line = -1;
+		table[current_size_cell].into = NULL;
+		current_size_cell++;
+	}
 }
 
 void table_add_type_to_id(char* id, Type type) {
