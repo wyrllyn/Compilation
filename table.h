@@ -20,6 +20,7 @@ struct t_cell {
 	char* id;
 	Type type;
 	Type * parameters;
+	int pSize;
 	int line;
 	char* into;
 };	
@@ -30,11 +31,13 @@ Cell* table;
 void init_table(int size);
 void table_add_id(char* id);
 void table_add_type_to_id(char* id, Type type);
+void addParameters(char* func, Type* params, int size);
 int table_contains(char* id);
 int table_index(char* id);
 void table_add_type_to_id(char* id, Type type);
 void table_print();
 void print_type(int index);
+void print_type_params(int index);
 void delete_tables();
 
 #endif

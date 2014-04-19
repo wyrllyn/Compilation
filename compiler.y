@@ -13,6 +13,10 @@ void yyerror(char const* s);
 extern FILE* yyin;
 
 Type g_type = UNKNOWN;
+Type * typesParam = NULL;
+int sizeTypesParam = 0;
+int wereDeclared = 0;
+int incWD = 0;
 
 char * copy_3(char* first, char* second, char* third) {
 	char* temp = malloc(sizeof(char)*strlen(first) + sizeof(char)*strlen(second) + sizeof(char)*strlen(third) + sizeof(char)*3);
@@ -23,6 +27,45 @@ char * copy_3(char* first, char* second, char* third) {
 	if (second[strlen(second) - 1] != '\n' && second[strlen(second) - 1] != '\t')
 		strcat(temp," ");
 	strcat(temp, third);
+	return temp;
+}
+
+Type* truncate_params(Type* params, int size, int declared) {
+	Type* temp = malloc(sizeof(Type) * (size - declared));
+	for (int i = 0; i < (size - declared); i++) {
+		temp[i] = params[i];
+	}
+	return temp;
+}
+
+Type* fillTypes(Type toAdd, Type* params) {
+
+	/*if (toAdd == T_PROGRAM)
+		printf("what the fuck ?! \n");
+
+	if (toAdd == UNKNOWN)
+		printf("what the fuck UNKNOWN ?! \n");
+
+	if (toAdd == T_INT)
+		printf("okay \n");*/
+	
+	
+	Type * temp = malloc(sizeof(Type) * (sizeTypesParam + 1));
+	if (params != NULL) {
+		for (int i = 0; i < sizeTypesParam; i++) {
+			temp[i] = params[i];
+		}
+	}
+	//printf("\n\ttemp[%d] = %d", sizeTypesParam, toAdd);
+	temp[sizeTypesParam] = toAdd;
+	//sizeTypesParam++;
+	//free(params);
+	//params = temp;
+	/*printf(" temp  %d, %d { ", temp, sizeTypesParam);
+	for (int i = 0; i < sizeTypesParam; i++) {
+		printf("%d, ", temp[i]);
+	}
+	printf(" }");*/
 	return temp;
 }
 
@@ -184,7 +227,6 @@ pg: PROGRAM VAR_ID ';' {
 //////////  DONE /////////////////
 
 core: function core {
-
 	$$ = copy_3($1,$2, "");
 
 }
@@ -204,10 +246,6 @@ main: main_var beginFound instruct_multiple BIG_END {
 	$$ = copy_3($$, "\n}", "");
 };
 
-/*function: function_header function_core {
-	$$ = copy_3($1, $2, indentation(indent));
-
-};*/
 
 procedure: procedure_header function_var procedure_core {
 	$$ = copy_3($1, $2, indentation(indent));
@@ -217,11 +255,20 @@ procedure: procedure_header function_var procedure_core {
 
 function: FUNCTION VAR_ID '(' params ')' COLON type ';'
 function_var beginFound instruct_multiple endFound';'
-{
-	
+{	
 
 	//TODO modif
+
+	printf(" the TRUTH : %d ", incWD);
 	table_add_type_to_id($2, returnType($7));
+
+	addParameters($2, typesParam, sizeTypesParam);
+
+	printf(" \n size function == > %d", sizeTypesParam);
+
+	free(typesParam);
+	sizeTypesParam = 0;
+	typesParam = NULL;
 
 	$$ = copy_3(getType($7), $2, "(");
 	$$ = copy_3($$, $4, ")");
@@ -241,6 +288,15 @@ function_var beginFound instruct_multiple endFound';'
 
 procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
 
+	addParameters($2, typesParam,  sizeTypesParam);
+
+	if(typesParam == NULL)
+		printf("you added nothing, stupid you \n");
+
+	free(typesParam);
+	sizeTypesParam = 0;
+	typesParam = NULL;
+
 	$$ = copy_3("void", $2, "(");
 	$$ = copy_3($$, $4, ")");
 	$$ = copy_3($$, "{", indentation(indent));
@@ -255,9 +311,13 @@ type: INTEGER { $$ = "INTEGER"; }
 /////////////////////////////////////// DONE ////////
 
 params: params_not_empty {
+	
+	incWD = 1;
 	$$ = $1;
 }
 | {
+	
+	incWD = 1;
 	$$ = "";
 };
 
@@ -274,6 +334,11 @@ params_not_empty: ids {
 ids: VAR_ID ',' ids {
 	$$ = copy_3($3, ",", $1);
 	table_add_type_to_id($1, g_type);
+	if (incWD == 0) {
+		typesParam = fillTypes(g_type, typesParam);
+		sizeTypesParam++;
+	}
+	wereDeclared++;
 }
 | VAR_ID COLON type {
 	// TYPE TODO symbol
@@ -282,21 +347,40 @@ ids: VAR_ID ',' ids {
 	table_add_type_to_id($1, returnType($3));
 	g_type = returnType($3);
 	char* temp = getType($3);
+	
+	if (incWD == 0) {
+		typesParam = fillTypes(returnType($3), typesParam);
+		sizeTypesParam++;
+	}
+	wereDeclared++;
+
 	$$ = copy_3(temp, $1, "");
 };
 
 ///////////////////////////////////////// DONE //////
 
 function_var: VAR declaration {
+	
+	printf("FUNCTION VAR %d\n", incWD);
+	incWD = 0;
+	wereDeclared = 0;
+	//free(typesParam);
+	//sizeTypesParam = 0;
+	//typesParam = NULL;
 	indent = 1;
 	$$ = $2;
 }
 | {
+	incWD = 0;
 	indent = 1;
 	$$ = "";
 };
 
 main_var: VAR declaration {
+	free(typesParam);
+	sizeTypesParam = 0;
+	typesParam = NULL;
+	
 	indent = 1;
 	$$ = copy_3(indentation(indent), $2, "");
 	
@@ -319,6 +403,9 @@ followed_by: VAR ids ';' followed_by  {
 	$$ = copy_3($$, indentation(indent), $4);
 }
 | {
+	//free(typesParam);
+	//sizeTypesParam = 0;
+	//typesParam = NULL;
 	indent = 1;
 	$$ = "";
 };
