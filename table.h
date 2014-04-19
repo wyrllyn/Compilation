@@ -17,12 +17,13 @@ enum t_type {
 typedef enum t_type Type;
 
 struct t_cell {
-	char* id;
-	Type type;
-	Type * parameters;
-	int pSize;
-	int line;
-	char* into;
+	char* id; //var id
+	Type type; // type of the var
+	Type * parameters; // if function or procedure type of the parameters
+	int pSize; // size of *parameters
+	int line; // line of the var declaration
+	int end; // line of the end if function
+	char* into; // is the var into a function / procedure ? if yes : which one 
 };	
 typedef struct t_cell Cell;
 
@@ -33,6 +34,7 @@ void table_add_id(char* id);
 void table_add_type_to_id(char* id, Type type);
 void addParameters(char* func, Type* params, int size);
 int table_contains(char* id);
+void setEndLine(char* id, int end);
 int table_index(char* id);
 void table_add_type_to_id(char* id, Type type);
 void table_print();

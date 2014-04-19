@@ -25,6 +25,7 @@ void table_add_id(char* id) {
 		table[current_size_cell].parameters = NULL;
 		table[current_size_cell].pSize = 0;
 		table[current_size_cell].line = -1;
+		table[current_size_cell].end = -1;
 		table[current_size_cell].into = NULL;
 		current_size_cell++;
 	}
@@ -33,6 +34,10 @@ void table_add_id(char* id) {
 void table_add_type_to_id(char* id, Type type) {
 	if (table[table_index(id)].type == UNKNOWN)
 		table[table_index(id)].type = type;
+}
+
+void setEndLine(char* id, int end) {
+	table[table_index(id)].end = end;
 }
 
 
@@ -79,6 +84,7 @@ void table_print() {
 		print_type(i);
 		printf(" | params : ");
 		print_type_params(i);
+		printf(" endLine %d", table[i].end);
 	}
 }
 

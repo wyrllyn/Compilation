@@ -15,8 +15,10 @@ extern FILE* yyin;
 Type g_type = UNKNOWN;
 Type * typesParam = NULL;
 int sizeTypesParam = 0;
-int wereDeclared = 0;
 int incWD = 0;
+
+int inFunction = 0;
+char* currentFunc = NULL;
 
 char * copy_3(char* first, char* second, char* third) {
 	char* temp = malloc(sizeof(char)*strlen(first) + sizeof(char)*strlen(second) + sizeof(char)*strlen(third) + sizeof(char)*3);
@@ -39,16 +41,6 @@ Type* truncate_params(Type* params, int size, int declared) {
 }
 
 Type* fillTypes(Type toAdd, Type* params) {
-
-	/*if (toAdd == T_PROGRAM)
-		printf("what the fuck ?! \n");
-
-	if (toAdd == UNKNOWN)
-		printf("what the fuck UNKNOWN ?! \n");
-
-	if (toAdd == T_INT)
-		printf("okay \n");*/
-	
 	
 	Type * temp = malloc(sizeof(Type) * (sizeTypesParam + 1));
 	if (params != NULL) {
@@ -56,16 +48,8 @@ Type* fillTypes(Type toAdd, Type* params) {
 			temp[i] = params[i];
 		}
 	}
-	//printf("\n\ttemp[%d] = %d", sizeTypesParam, toAdd);
 	temp[sizeTypesParam] = toAdd;
-	//sizeTypesParam++;
-	//free(params);
-	//params = temp;
-	/*printf(" temp  %d, %d { ", temp, sizeTypesParam);
-	for (int i = 0; i < sizeTypesParam; i++) {
-		printf("%d, ", temp[i]);
-	}
-	printf(" }");*/
+
 	return temp;
 }
 
@@ -173,6 +157,7 @@ char* indentation(int ind) {
 %token<type_string> MINUS
 %token<type_string> DIVIDE
 %token<type_string> TIMES
+%token<type_string> BOOL_CONDITION
 
 %type<type_string> type;
 %type<type_string> expr;
@@ -200,6 +185,7 @@ char* indentation(int ind) {
 %type<type_string> procedure_core;
 %type<type_string> program;
 %type<type_string> pg;
+%type<integer> endFunc;
 
 
 
@@ -246,52 +232,11 @@ main: main_var beginFound instruct_multiple BIG_END {
 	$$ = copy_3($$, "\n}", "");
 };
 
-
-procedure: procedure_header function_var procedure_core {
-	$$ = copy_3($1, $2, indentation(indent));
-	$$ = copy_3($$, $3, indentation(indent));
-};
-
-
-function: FUNCTION VAR_ID '(' params ')' COLON type ';'
-function_var beginFound instruct_multiple endFound';'
-{	
-
-	//TODO modif
-
-	printf(" the TRUTH : %d ", incWD);
-	table_add_type_to_id($2, returnType($7));
-
-	addParameters($2, typesParam, sizeTypesParam);
-
-	printf(" \n size function == > %d", sizeTypesParam);
-
-	free(typesParam);
-	sizeTypesParam = 0;
-	typesParam = NULL;
-
-	$$ = copy_3(getType($7), $2, "(");
-	$$ = copy_3($$, $4, ")");
-		printf("\n 1 indentation %d ", indent);
-	indent = 1;
-	$$ = copy_3($$, "{", indentation(indent));
-	$$ = copy_3($$, getType($7), $2);
-	$$ = copy_3($$, ";", indentation(indent));
-	$$ = copy_3($$, $9, $11);
-	$$ = copy_3($$, indentation(indent), "return");
-	$$ = copy_3($$, $2, ";");
-	$$ = copy_3($$, "\n", $12);
-};
-
-
-///////////////////////////// DONE   /////////////////////////
-
 procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
 
-	addParameters($2, typesParam,  sizeTypesParam);
+	currentFunc = $2;
 
-	if(typesParam == NULL)
-		printf("you added nothing, stupid you \n");
+	addParameters($2, typesParam,  sizeTypesParam);
 
 	free(typesParam);
 	sizeTypesParam = 0;
@@ -301,7 +246,49 @@ procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
 	$$ = copy_3($$, $4, ")");
 	$$ = copy_3($$, "{", indentation(indent));
 	indent++;
-}
+};
+
+procedure: procedure_header function_var procedure_core {
+
+
+	inFunction = 0;
+	$$ = copy_3($1, $2, indentation(indent));
+	$$ = copy_3($$, $3, indentation(indent));
+};
+
+
+function: FUNCTION VAR_ID '(' params ')' COLON type ';'
+function_var beginFound instruct_multiple endFunc';'
+{	
+	table_add_type_to_id($2, returnType($7));
+	addParameters($2, typesParam, sizeTypesParam);
+
+	currentFunc = $2;
+	inFunction = 0;
+
+	setEndLine(currentFunc, $12);
+
+	free(typesParam);
+	sizeTypesParam = 0;
+	typesParam = NULL;
+
+	$$ = copy_3(getType($7), $2, "(");
+	$$ = copy_3($$, $4, ")");
+	indent = 1;
+	$$ = copy_3($$, "{", indentation(indent));
+	$$ = copy_3($$, getType($7), $2);
+	$$ = copy_3($$, ";", indentation(indent));
+	$$ = copy_3($$, $9, $11);
+	$$ = copy_3($$, indentation(indent), "return");
+	$$ = copy_3($$, $2, ";");
+	$$ = copy_3($$, "\n", indentation(indent));
+
+	$$ = copy_3($$, "}", "\n");
+};
+
+
+///////////////////////////// DONE   /////////////////////////
+
 
 type: INTEGER { $$ = "INTEGER"; }
 | CHAR { $$ = "CHAR";}
@@ -312,11 +299,12 @@ type: INTEGER { $$ = "INTEGER"; }
 
 params: params_not_empty {
 	
+	inFunction = 1;
 	incWD = 1;
 	$$ = $1;
 }
 | {
-	
+	inFunction = 1;
 	incWD = 1;
 	$$ = "";
 };
@@ -338,12 +326,8 @@ ids: VAR_ID ',' ids {
 		typesParam = fillTypes(g_type, typesParam);
 		sizeTypesParam++;
 	}
-	wereDeclared++;
 }
 | VAR_ID COLON type {
-	// TYPE TODO symbol
-
-
 	table_add_type_to_id($1, returnType($3));
 	g_type = returnType($3);
 	char* temp = getType($3);
@@ -352,7 +336,6 @@ ids: VAR_ID ',' ids {
 		typesParam = fillTypes(returnType($3), typesParam);
 		sizeTypesParam++;
 	}
-	wereDeclared++;
 
 	$$ = copy_3(temp, $1, "");
 };
@@ -363,10 +346,6 @@ function_var: VAR declaration {
 	
 	printf("FUNCTION VAR %d\n", incWD);
 	incWD = 0;
-	wereDeclared = 0;
-	//free(typesParam);
-	//sizeTypesParam = 0;
-	//typesParam = NULL;
 	indent = 1;
 	$$ = $2;
 }
@@ -403,9 +382,6 @@ followed_by: VAR ids ';' followed_by  {
 	$$ = copy_3($$, indentation(indent), $4);
 }
 | {
-	//free(typesParam);
-	//sizeTypesParam = 0;
-	//typesParam = NULL;
 	indent = 1;
 	$$ = "";
 };
@@ -413,8 +389,10 @@ followed_by: VAR ids ';' followed_by  {
 
 ////////////////// DONE /////////////////////////
 
-procedure_core: block {
-	$$ = $1;
+procedure_core: beginFound instruct_multiple endFunc';' {
+	
+	setEndLine(currentFunc, $3);
+	$$ = copy_3($2,indentation(indent), "}") ;
 };
 
 //////////////////////////////////
@@ -504,8 +482,14 @@ expr: NBR {
 }
 | VAR_ID { 
 	$$ = $1;
-	;
 }
+| BOOL_CONDITION {
+	if ( strcmp($1, "true") == 0)
+		$$ = "1";
+	else
+		$$ = "0";
+}
+
 | expr PLUS expr {
 	$$ = copy_3($1, $2, $3);
 }
@@ -580,6 +564,14 @@ beginFound: BEGIN_BLOCK {
 endFound: END_BLOCK {
 	indent--;
 	$$ = copy_3(indentation(indent), "}", "");
+};
+
+endFunc: END_BLOCK {	
+	indent--;
+	
+	$$ = line;
+	//$$ = copy_3(indentation(indent), "}", "");
+	
 };
 
 %%

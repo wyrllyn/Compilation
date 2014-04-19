@@ -232,6 +232,11 @@ id ([a-zA-Z]|_)([a-zA-Z]|[0-9]|_)*
 	return BIG_END;
 }
 
+"true"|"false" {	
+	yylval.type_string = copy(yytext);
+	return BOOL_CONDITION;
+}
+
 ({LETTRE}|_)({LETTRE}|{CHIFFRE}|_)* {
 	yylval.type_string = (char*)malloc((yyleng+1)*sizeof(char));
 	strncpy(yylval.type_string, yytext, yyleng + 1);
