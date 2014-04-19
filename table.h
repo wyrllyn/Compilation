@@ -31,6 +31,7 @@ Cell* table;
 
 void init_table(int size);
 void table_add_id(char* id);
+void add_into(char* id, char* func);
 void table_add_type_to_id(char* id, Type type);
 void addParameters(char* func, Type* params, int size);
 int table_contains(char* id);
@@ -41,5 +42,6 @@ void table_print();
 void print_type(int index);
 void print_type_params(int index);
 void delete_tables();
+void set_temp_func(char* func);
 
 #endif

@@ -31,6 +31,19 @@ void table_add_id(char* id) {
 	}
 }
 
+void set_temp_func(char* func) {
+	for (int i = 0; i < table_size; i++) {
+		if (table[i].into != NULL && strcmp(table[i].into, "TEMP_FUNC") == 0) {
+			table[i].into = func;
+		}
+	}
+}
+
+void add_into(char* id, char* func) {
+	table[table_index(id)].into = func;
+}
+
+
 void table_add_type_to_id(char* id, Type type) {
 	if (table[table_index(id)].type == UNKNOWN)
 		table[table_index(id)].type = type;
@@ -85,6 +98,7 @@ void table_print() {
 		printf(" | params : ");
 		print_type_params(i);
 		printf(" endLine %d", table[i].end);
+		printf("\n \t is into this : %s", table[i].into);
 	}
 }
 

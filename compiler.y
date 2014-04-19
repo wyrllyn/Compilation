@@ -97,6 +97,8 @@ char* indentation(int ind) {
 	return indent_str;
 }
 
+
+
 %}
 %error-verbose
 
@@ -234,8 +236,8 @@ main: main_var beginFound instruct_multiple BIG_END {
 
 procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
 
-	currentFunc = $2;
 
+	currentFunc = $2;
 	addParameters($2, typesParam,  sizeTypesParam);
 
 	free(typesParam);
@@ -250,7 +252,7 @@ procedure_header: PROCEDURE VAR_ID '(' params ')'';' {
 
 procedure: procedure_header function_var procedure_core {
 
-
+	set_temp_func(currentFunc);
 	inFunction = 0;
 	$$ = copy_3($1, $2, indentation(indent));
 	$$ = copy_3($$, $3, indentation(indent));
@@ -263,10 +265,15 @@ function_var beginFound instruct_multiple endFunc';'
 	table_add_type_to_id($2, returnType($7));
 	addParameters($2, typesParam, sizeTypesParam);
 
-	currentFunc = $2;
 	inFunction = 0;
 
+	currentFunc = $2;
+	set_temp_func($2);
+
 	setEndLine(currentFunc, $12);
+	currentFunc = "";
+
+	printf("into FUNCTION %d ", $12);
 
 	free(typesParam);
 	sizeTypesParam = 0;
@@ -304,6 +311,7 @@ params: params_not_empty {
 	$$ = $1;
 }
 | {
+
 	inFunction = 1;
 	incWD = 1;
 	$$ = "";
@@ -325,7 +333,13 @@ ids: VAR_ID ',' ids {
 	if (incWD == 0) {
 		typesParam = fillTypes(g_type, typesParam);
 		sizeTypesParam++;
+		add_into($1, "TEMP_FUNC");
 	}
+	if (inFunction == 1) {
+		printf("\n IDS  %s %s", $1, currentFunc);
+		add_into($1, "TEMP_FUNC");
+	}
+
 }
 | VAR_ID COLON type {
 	table_add_type_to_id($1, returnType($3));
@@ -335,6 +349,12 @@ ids: VAR_ID ',' ids {
 	if (incWD == 0) {
 		typesParam = fillTypes(returnType($3), typesParam);
 		sizeTypesParam++;
+		add_into($1, "TEMP_FUNC");
+	}
+
+	if (inFunction == 1) {	
+		printf("\n IDS  %s %s", $1, currentFunc);
+		add_into($1, "TEMP_FUNC");
 	}
 
 	$$ = copy_3(temp, $1, "");
@@ -570,6 +590,7 @@ endFunc: END_BLOCK {
 	indent--;
 	
 	$$ = line;
+	printf(" end %d", line);
 	//$$ = copy_3(indentation(indent), "}", "");
 	
 };
