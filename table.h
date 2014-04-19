@@ -30,7 +30,7 @@ typedef struct t_cell Cell;
 Cell* table;
 
 void init_table(int size);
-void table_add_id(char* id);
+void table_add_id(char* id, int force);
 void add_into(char* id, char* func);
 void table_add_type_to_id(char* id, Type type);
 void addParameters(char* func, Type* params, int size);

@@ -8,7 +8,7 @@ void init_table(int size) {
 	table = (Cell*)malloc(sizeof(Cell) * size);
 }
 
-void table_add_id(char* id) {
+void table_add_id(char* id, int force) {
 	// bump table size if required
 	if (current_size_cell == table_size || current_size_variables == table_size ) {
 		Cell* temp = malloc(sizeof(Cell) * table_size + 10);
@@ -19,7 +19,7 @@ void table_add_id(char* id) {
 		table = temp;
 		table_size = table_size + 10;
 	}
-	if (table_contains(id) == 0) {
+	if (force == 1 || table_contains(id) == 0) {
 		table[current_size_cell].id = id;
 		table[current_size_cell].type = UNKNOWN;
 		table[current_size_cell].parameters = NULL;

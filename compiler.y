@@ -329,6 +329,13 @@ params_not_empty: ids {
 
 ids: VAR_ID ',' ids {
 	$$ = copy_3($3, ",", $1);
+	//////
+	if (table_contains($1)) {
+		if (table[table_index($1)].into != NULL && strcmp(table[table_index($1)].into, "TEMP_FUNC") == 0) {
+			yyerror(" La variable a déjà été déclarée");
+		}
+	}
+	//////
 	table_add_type_to_id($1, g_type);
 	if (incWD == 0) {
 		typesParam = fillTypes(g_type, typesParam);
@@ -352,8 +359,7 @@ ids: VAR_ID ',' ids {
 		add_into($1, "TEMP_FUNC");
 	}
 
-	if (inFunction == 1) {	
-		printf("\n IDS  %s %s", $1, currentFunc);
+	if (inFunction == 1) {
 		add_into($1, "TEMP_FUNC");
 	}
 
@@ -363,8 +369,6 @@ ids: VAR_ID ',' ids {
 ///////////////////////////////////////// DONE //////
 
 function_var: VAR declaration {
-	
-	printf("FUNCTION VAR %d\n", incWD);
 	incWD = 0;
 	indent = 1;
 	$$ = $2;
