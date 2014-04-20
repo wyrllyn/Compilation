@@ -4,8 +4,13 @@ Compilation:
   make
 
 Lancement:
-  ./prog [fichier source]
-  ou bien make run
+  ./prog [fichier source] [options]
+  ou bien make run (équivalent à ./prog test.pas, sans arguments)
+
+Arguments optionnels:
+    -noTable    supprime l’affichage de la table des symboles
+    -noCPrint   supprime l’affichage de la traduction (le fichier .c est tout de même produit)
+    -noCFile    supprime la production d’un fichier .c contenant la traduction
 
 Résultat d'exécution:
   Le programme affiche le code source traduit en C, suivi de la table des symbole à la fin de l'exécution.
