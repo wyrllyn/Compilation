@@ -30,4 +30,3 @@ clean:
 
 run: all
 	./prog test.pas
-	ls -l | grep test

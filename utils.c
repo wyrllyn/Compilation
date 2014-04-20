@@ -122,12 +122,12 @@ void compile(char* name) {
 	char* nameless = remove_file_extension(name);
 	char* cmd_line[] = { name, "-o", nameless, "-std=c99"};
 	
-	int pid = fork();
+	/*int pid = fork();
 	if (pid == 0) {
 		printf("\ngcc");
 		for (int i = 0; i < 4; i++) {
 			printf(" %s", cmd_line[i]);
 		}
 		execv("/usr/bin/gcc", cmd_line);
-	}
+	}*/
 }
