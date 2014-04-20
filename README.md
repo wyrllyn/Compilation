@@ -6,6 +6,8 @@ Compilation:
 Lancement:
   ./prog [fichier source] [options]
   ou bien make run (équivalent à ./prog test.pas, sans arguments)
+  Exemple de ligne de commande:
+    ./prog test.pas -noCPrint
 
 Arguments optionnels:
     -noTable    supprime l’affichage de la table des symboles
