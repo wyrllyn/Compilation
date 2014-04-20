@@ -31,7 +31,6 @@ void compile(char* name) {
 		for (int i = 0; i < 4; i++) {
 			printf(" %s", cmd_line[i]);
 		}
-		usleep(100);
 		execv("/usr/bin/gcc", cmd_line);
 	}
 }

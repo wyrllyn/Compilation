@@ -35,15 +35,6 @@ char * copy_3(char* first, char* second, char* third) {
 	return temp;
 }
 
-// unused, remove this
-Type* truncate_params(Type* params, int size, int declared) {
-	Type* temp = malloc(sizeof(Type) * (size - declared));
-	for (int i = 0; i < (size - declared); i++) {
-		temp[i] = params[i];
-	}
-	return temp;
-}
-
 Type* fillTypes(Type toAdd, Type* params) {
 	
 	Type * temp = malloc(sizeof(Type) * (sizeTypesParam + 1));
@@ -217,12 +208,9 @@ char* indentation(int ind) {
 %%
 
 program: pg core main {
-		printf("\n First indentation %d ", indent);
 
 	$$ = copy_3($1, $2, $3);
-
 	
-
 	printf("\n %s", $$);
 	fprintf(out, "%s", $$);
 };
@@ -295,8 +283,6 @@ function_var beginFound instruct_multiple endFunc';'
 
 	setEndLine(currentFunc, $12);
 	currentFunc = "";
-
-	printf("into FUNCTION %d ", $12);
 
 	free(typesParam);
 	sizeTypesParam = 0;
@@ -371,7 +357,6 @@ ids: VAR_ID ',' ids {
 		add_into($1, "TEMP_FUNC");
 	}
 	if (inFunction == 1) {
-		printf("\n IDS  %s %s", $1, currentFunc);
 		add_into($1, "TEMP_FUNC");
 	}
 
@@ -622,7 +607,6 @@ endFunc: END_BLOCK {
 	indent--;
 	
 	$$ = line;
-	printf(" end %d", line);
 	//$$ = copy_3(indentation(indent), "}", "");
 	
 };
