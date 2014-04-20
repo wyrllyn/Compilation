@@ -1,13 +1,8 @@
 %{
 #include "compiler.tab.h"
+#include "utils.h"
 
 extern int line;
-
-char* copy(char* toCopy) {
-	char* temp = malloc(sizeof(toCopy));
-	strcpy(temp, toCopy);
-	return temp;
-}
 
 %}
 
