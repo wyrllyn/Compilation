@@ -15,6 +15,7 @@ extern FILE* yyin;
 
 FILE* out;
 
+
 Type g_type = UNKNOWN;
 Type * typesParam = NULL;
 int sizeTypesParam = 0;
@@ -23,6 +24,25 @@ int incWD = 0;
 int inFunction = 0;
 char* currentFunc = NULL;
 
+//// optional arguments stuff
+#define COMPARE(x, y) strcmp(x, y) == 0
+int printTable = 1;
+int printC = 1;
+int createC = 1;
+
+void dealWithArgs(int argc, char* argv[]) {
+	for (int i = 2; i < argc; i++) {
+		if (COMPARE(argv[i], "-noTable")) {
+			printTable = 0;
+		} else if (COMPARE(argv[i], "-printTable")) {
+			printTable = 1;
+		} else if (COMPARE(argv[i], "-noCPrint")) {
+			printC = 0;
+		} else if (COMPARE(argv[i], "-noCFile")) {
+			createC = 0;
+		}
+	}
+}
 
 %}
 %error-verbose
@@ -122,8 +142,10 @@ program: pg core main {
 
 	$$ = copy_3($1, $2, $3);
 	
-	printf("\n %s", $$);
-	fprintf(out, "%s", $$);
+	if (printC)
+		printf("\n %s", $$);
+	if (createC)
+		fprintf(out, "%s", $$);
 };
 
 /////////////////DONE ////////////////////
@@ -538,18 +560,27 @@ int main(int argc, char* argv[]) {
 		}
 		yyin = f;
 
+		if (argc > 2)
+			dealWithArgs(argc, argv);
+
 		// manage output file
-		name = remove_file_extension(argv[1]);
-		strcat(name, ".c");
-		printf("\n### Writing in file %s ###\n", name);
-		out = fopen(name,"w");
+		if (createC) {
+			name = remove_file_extension(argv[1]);
+			strcat(name, ".c");
+			printf("\n### Writing in file %s ###\n", name);
+			out = fopen(name,"w");
+		}
 	}
 	yyparse();
 
-	table_print();
+	if (printTable)
+		table_print();
 
 	if (f != NULL) {
 		fclose(f);
+	}
+
+	if (out != NULL) {
 		fclose(out);
 		compile(name);
 	}
